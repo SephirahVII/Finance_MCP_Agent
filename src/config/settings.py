@@ -4,6 +4,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
+def _get_int_env(name: str, default: int) -> int:
+    value = os.getenv(name)
+    if value is None or value == "":
+        return default
+    return int(value)
+
+
 def _load_env_file(path: Path) -> None:
     """Load simple KEY=VALUE pairs from .env without requiring python-dotenv."""
     if not path.exists():
@@ -32,6 +39,10 @@ class Settings:
     llm_base_url: str | None
     llm_model: str | None
     mcp_python_path: str
+    mcp_transport: str
+    mcp_host: str
+    mcp_port: int
+    mcp_streamable_http_path: str
     model_name: str | None
     data_cache_dir: str
     charts_dir: str
@@ -54,6 +65,10 @@ settings = Settings(
     llm_base_url=os.getenv("LLM_BASE_URL") or None,
     llm_model=os.getenv("LLM_MODEL") or os.getenv("MODEL_NAME") or None,
     mcp_python_path=os.getenv("MCP_PYTHON_PATH") or sys.executable,
+    mcp_transport=os.getenv("MCP_TRANSPORT", "stdio"),
+    mcp_host=os.getenv("MCP_HOST", "127.0.0.1"),
+    mcp_port=_get_int_env("MCP_PORT", 8000),
+    mcp_streamable_http_path=os.getenv("MCP_STREAMABLE_HTTP_PATH", "/mcp"),
     model_name=os.getenv("MODEL_NAME") or None,
     data_cache_dir=os.getenv("DATA_CACHE_DIR", "data_cache"),
     charts_dir=os.getenv("CHARTS_DIR", "charts"),

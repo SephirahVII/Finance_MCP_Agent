@@ -1,6 +1,6 @@
 # MCP Client Configuration
 
-This project currently exposes a local MCP Server over `stdio`.
+This project can expose a local MCP Server over `stdio` or Streamable HTTP.
 
 ## Generic stdio Configuration
 
@@ -61,16 +61,43 @@ Do not commit real tokens to GitHub.
 
 ## Transport
 
-Current transport:
+Supported transports:
 
 ```text
 stdio
+streamable-http
 ```
 
-Not currently implemented:
+Not recommended for new work:
 
 ```text
-streamable-http
 sse
 ```
 
+## Streamable HTTP
+
+Start the server:
+
+```powershell
+python -m src.mcp_server.server --transport streamable-http --host 127.0.0.1 --port 8000 --path /mcp
+```
+
+Local endpoint:
+
+```text
+http://127.0.0.1:8000/mcp
+```
+
+Example URL-style configuration for clients that support remote MCP servers:
+
+```json
+{
+  "mcpServers": {
+    "tushareFinancialAnalystHttp": {
+      "url": "http://127.0.0.1:8000/mcp"
+    }
+  }
+}
+```
+
+Keep Tushare credentials in the server process environment or `.env`; do not put secrets in the URL.

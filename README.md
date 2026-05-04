@@ -40,8 +40,6 @@ Implemented:
 
 Not included yet:
 
-- Streamable HTTP MCP transport
-- SSE transport
 - Web frontend
 - Multi-agent workflow
 - Fundamental statement analysis
@@ -136,13 +134,33 @@ These directories are ignored by Git.
 
 ## Run MCP Server
 
-The server currently supports `stdio` transport:
+Run with local `stdio` transport:
 
 ```powershell
 python -m src.mcp_server.server
 ```
 
+or explicitly:
+
+```powershell
+python -m src.mcp_server.server --transport stdio
+```
+
 When run directly in a terminal, a `stdio` MCP Server waits for JSON-RPC messages from an MCP client. It is normal for it not to print a normal interactive prompt.
+
+Run with Streamable HTTP transport:
+
+```powershell
+python -m src.mcp_server.server --transport streamable-http --host 127.0.0.1 --port 8000 --path /mcp
+```
+
+The local HTTP endpoint is:
+
+```text
+http://127.0.0.1:8000/mcp
+```
+
+For safety, keep the host as `127.0.0.1` unless you are intentionally deploying the service with proper authentication and network controls.
 
 ## Run Agent
 
@@ -194,4 +212,3 @@ src/
 - `daily_basic` may require higher Tushare permissions. The tool returns a structured `permission_denied` result if unavailable.
 - `stock_basic` has strict frequency limits, so caching is recommended.
 - Large raw market data should be processed locally and summarized before being sent to an LLM to control token usage.
-
