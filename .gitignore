@@ -1,0 +1,35 @@
+# Secrets and local configuration
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environments and package caches
+.venv/
+venv/
+env/
+.uv-cache/
+
+# Local IDE state
+.vscode/
+.idea/
+
+# Runtime artifacts
+data_cache/
+charts/
+reports/
+
+# Local-only learning notes
+docs/learning/
+docs/project_workflow.md
+
+# OS files
+.DS_Store
+Thumbs.db
