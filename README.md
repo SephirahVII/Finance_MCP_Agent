@@ -1,51 +1,95 @@
-# Tushare AI Financial Agent
+# Finance MCP Agent
 
-A local MCP-powered financial analysis agent for Chinese A-share market data.
+English | [中文](README.zh-CN.md)
 
-This project provides a local MCP Server that wraps Tushare data access, price-trend analysis, chart generation, and an optional LLM Agent interface. It is designed for personal research, reproducible local workflows, and integration with MCP-compatible clients.
+A local MCP-powered financial data analysis agent. The current implementation focuses on Chinese A-share OHLCV data through Tushare, while the codebase is being shaped for multiple data providers such as AkShare and Binance.
 
-> Disclaimer: This project is for data analysis and learning purposes only. It does not provide investment advice.
+> Disclaimer: This project is for data analysis, engineering practice, and learning. It does not provide investment advice.
 
-## Features
+## Current Status
 
-- Local MCP Server over `stdio`
-- Tushare Pro stock-name and stock-code resolution
-- Daily OHLCV data retrieval
-- Local JSON cache for daily market data
-- Graceful handling of Tushare permission, rate-limit, empty-data, and network errors
-- Price trend analysis:
-  - interval return
-  - annualized volatility
-  - maximum drawdown
-  - MA5 / MA20 / MA60
-  - highest / lowest price
-  - largest up / down trading day
-- Price chart generation with Close, MA5, and MA20
-- Optional Agent runner using OpenAI-compatible providers such as DeepSeek
-
-## Current Scope
+The project has moved from a Tushare-only prototype to a unified provider/service architecture.
 
 Implemented:
 
-- `health_check`
-- `get_project_info`
-- `resolve_stock_code_tool`
-- `get_stock_basic_tool`
-- `get_daily_prices_tool`
-- `get_daily_basic_tool`
-- `get_stock_market_data_tool`
-- `analyze_price_trend_tool`
-- `generate_price_chart_tool`
-- `generate_stock_charts_tool`
+- FastMCP server with `stdio` and Streamable HTTP transports
+- Unified instrument resolution
+- Unified OHLCV market data model
+- Tushare provider for China A-share daily OHLCV data
+- Price trend analysis based on OHLCV data
+- Price chart generation
+- Local JSON cache helpers and runtime output directories
+- Optional Agent runner with OpenAI-compatible LLM providers such as DeepSeek
 
-Not included yet:
+Currently exposed MCP tools:
 
-- Web frontend
+| Tool | Purpose |
+|---|---|
+| `health_check` | Check whether the MCP server is running |
+| `get_project_info` | Return project and runtime configuration metadata |
+| `resolve_instrument_tool` | Resolve user input into a unified financial instrument |
+| `get_ohlcv_tool` | Fetch unified OHLCV data |
+| `analyze_ohlcv_price_trend_tool` | Analyze return, volatility, drawdown, moving averages, and extreme days |
+| `generate_ohlcv_price_chart_tool` | Generate a price chart from unified OHLCV data |
+
+Not implemented yet:
+
+- `daily_basic` valuation tools
+- Fundamental statement tools
+- Order book tools
+- AkShare provider
+- Binance provider
 - Multi-agent workflow
-- Fundamental statement analysis
-- Markdown/PDF report generator
+- Web frontend
 
-The current design intentionally keeps report writing in the Agent layer. The MCP Server provides structured data, analysis metrics, and chart paths.
+## Architecture
+
+```text
+Agent / MCP Client
+  -> MCP tools
+    -> services unified API
+      -> providers
+        -> Tushare
+        -> AkShare      # planned
+        -> Binance      # planned
+      -> storage cache
+      -> analysis / charts / future factors
+```
+
+Current source layout:
+
+```text
+src/
+  agent/
+    agent.py                 # Agent runner using MCP tools
+    prompts.py               # Financial analysis instructions
+  config/
+    settings.py              # Environment and runtime settings
+  mcp_server/
+    server.py                # FastMCP server entrypoint
+    tools_instruments.py     # Unified instrument tools
+    tools_market_data.py     # Unified OHLCV, analysis, and chart tools
+  models/
+    instruments.py           # Unified financial instrument model
+    market_data.py           # OHLCV data models
+    analysis.py              # Price trend analysis result models
+    errors.py                # Shared error models
+  providers/
+    tushare/
+      client.py              # Tushare client creation
+      instruments.py         # Tushare / China A-share instrument resolution
+      market_data.py         # Tushare daily data adapter
+  services/
+    instruments.py           # Unified instrument resolution service
+    unified_market_data.py   # Provider routing for OHLCV data
+    unified_analysis.py      # OHLCV analysis
+    unified_charts.py        # Chart generation
+  storage/
+    cache.py                 # JSON cache helpers
+    paths.py                 # Runtime output paths
+  utils/
+    dates.py                 # Date normalization helpers
+```
 
 ## Requirements
 
@@ -53,7 +97,7 @@ The current design intentionally keeps report writing in the Agent layer. The MC
 - Tushare Pro token
 - Optional: OpenAI-compatible LLM API key for Agent mode
 
-Recommended Conda environment:
+Install dependencies:
 
 ```powershell
 conda create -n tushare-agent python=3.11 -y
@@ -75,7 +119,7 @@ Copy `.env.example` to `.env`:
 Copy-Item .env.example .env
 ```
 
-Then fill in local secrets:
+Fill in local secrets:
 
 ```text
 TUSHARE_TOKEN=your_tushare_token
@@ -86,40 +130,32 @@ LLM_MODEL=deepseek-v4-flash
 DEEPSEEK_API_KEY=your_deepseek_api_key
 ```
 
-Do not commit `.env`.
+Do not commit `.env`, generated charts, cached data, reports, or personal absolute paths.
 
-`MCP_PYTHON_PATH` is optional. If omitted, the Agent uses the Python interpreter that launched `src.agent.agent`.
+## Smoke Checks
 
-## Run Local Smoke Checks
-
-Check core tools without starting an MCP client:
+Check the MCP server object:
 
 ```powershell
-python -c "from src.mcp_server.server import health_check, get_project_info; print(health_check()); print(get_project_info())"
+python -c "from src.mcp_server.server import create_mcp_server; print(type(create_mcp_server()).__name__)"
 ```
 
-Check stock resolution:
+Resolve an instrument:
 
 ```powershell
-python -c "from src.services.stock_resolver import resolve_stock_code; print(resolve_stock_code('600519.SH'))"
+python -c "from src.services.instruments import resolve_instrument; print(resolve_instrument('贵州茅台').to_dict())"
 ```
 
-Check daily market data:
+Fetch unified OHLCV data:
 
 ```powershell
-python -c "from src.services.market_data import get_daily_prices; print(get_daily_prices('600519.SH','2024-01-01','2024-01-31', limit=3))"
+python -c "from src.services.unified_market_data import get_ohlcv; r=get_ohlcv(symbol='600519.SH', market='cn', asset_type='stock', start_date='2024-01-01', end_date='2024-01-31'); print(r.success, len(r.records), r.provider)"
 ```
 
-Check price analysis:
+Analyze price trend:
 
 ```powershell
-python -c "from src.services.analyzer import analyze_price_trend; print(analyze_price_trend('600519.SH','2024-01-01','2024-01-31'))"
-```
-
-Generate a chart:
-
-```powershell
-python -c "from src.services.chart_generator import generate_price_chart; print(generate_price_chart('600519.SH','2024-01-01','2024-01-31'))"
+python -c "from src.services.unified_analysis import analyze_ohlcv_price_trend; r=analyze_ohlcv_price_trend(symbol='600519.SH', market='cn', asset_type='stock', start_date='2024-01-01', end_date='2024-01-31'); print(r.success, r.metrics.to_dict() if r.metrics else r.to_dict())"
 ```
 
 Generated runtime files are written under:
@@ -137,16 +173,10 @@ These directories are ignored by Git.
 Run with local `stdio` transport:
 
 ```powershell
-python -m src.mcp_server.server
-```
-
-or explicitly:
-
-```powershell
 python -m src.mcp_server.server --transport stdio
 ```
 
-When run directly in a terminal, a `stdio` MCP Server waits for JSON-RPC messages from an MCP client. It is normal for it not to print a normal interactive prompt.
+When run directly in a terminal, a `stdio` MCP server waits for JSON-RPC messages from an MCP client. It is normal for it not to behave like an interactive shell.
 
 Run with Streamable HTTP transport:
 
@@ -154,13 +184,13 @@ Run with Streamable HTTP transport:
 python -m src.mcp_server.server --transport streamable-http --host 127.0.0.1 --port 8000 --path /mcp
 ```
 
-The local HTTP endpoint is:
+The local MCP endpoint is:
 
 ```text
 http://127.0.0.1:8000/mcp
 ```
 
-For safety, keep the host as `127.0.0.1` unless you are intentionally deploying the service with proper authentication and network controls.
+Keep the host as `127.0.0.1` unless you intentionally deploy the service with proper authentication and network controls.
 
 ## Run Agent
 
@@ -173,42 +203,50 @@ python -m src.agent.agent
 Run with a custom query:
 
 ```powershell
-python -m src.agent.agent "请分析贵州茅台 2024-01-01 到 2024-01-31 的价格走势，说明收益率、波动率、最大回撤，并生成图表"
+python -m src.agent.agent "请分析贵州茅台 2024-01-01 到 2024-01-31 的价格走势，并说明收益率、波动率和最大回撤。"
 ```
 
-The Agent starts the local MCP Server, calls the available tools, and writes the final analysis in Chinese.
+The Agent starts a local MCP server, calls the available tools, and writes the final analysis in Chinese.
 
 ## MCP Client Integration
 
 See [MCP client configuration](docs/mcp_client_config.md).
 
-## Project Structure
+## Future Provider Expansion
+
+Planned provider layout:
 
 ```text
-src/
-  agent/
-    agent.py          # Agent runner using MCP tools
-    prompts.py        # Financial analyst instructions
-  config/
-    settings.py       # Environment and runtime settings
-  mcp_server/
-    server.py         # FastMCP server entrypoint
-    tools_stock.py    # Stock and market-data tools
-    tools_analysis.py # Price analysis tools
-    tools_chart.py    # Chart generation tools
-  services/
-    tushare_client.py # Tushare Pro client creation
-    stock_resolver.py # Stock name/code resolution
-    market_data.py    # Daily and daily_basic data access
-    analyzer.py       # Price trend analysis
-    chart_generator.py# Matplotlib chart generation
-  storage/
-    cache.py          # JSON cache helpers
-    paths.py          # Runtime output paths
+src/providers/
+  tushare/
+    client.py
+    instruments.py
+    market_data.py
+    valuation.py       # planned daily_basic adapter
+    fundamentals.py    # planned statements / financial indicators
+  akshare/
+    client.py
+    instruments.py
+    market_data.py
+    valuation.py
+    futures.py
+  binance/
+    client.py
+    instruments.py
+    market_data.py     # klines
+    order_book.py      # bids / asks / depth
 ```
 
-## Notes
+Planned unified services:
 
-- `daily_basic` may require higher Tushare permissions. The tool returns a structured `permission_denied` result if unavailable.
-- `stock_basic` has strict frequency limits, so caching is recommended.
-- Large raw market data should be processed locally and summarized before being sent to an LLM to control token usage.
+```text
+src/services/
+  unified_valuation.py
+  unified_fundamentals.py
+  unified_order_book.py
+  analysis_dataset.py
+  factors.py
+```
+
+This keeps provider-specific APIs isolated and lets MCP tools call stable unified services.
+

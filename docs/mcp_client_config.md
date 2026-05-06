@@ -1,70 +1,72 @@
-# MCP Client Configuration
+# MCP 客户端配置
 
-This project can expose a local MCP Server over `stdio` or Streamable HTTP.
+本项目可以通过 `stdio` 或 Streamable HTTP 暴露本地 MCP Server。
 
-Use placeholders in the examples below and replace them with your local paths:
+文档中的路径全部使用占位符，请替换为你自己的本地路径：
 
 ```text
-<PYTHON_EXE>      Path to the Python executable in your project environment
-<PROJECT_ROOT>    Path to the cloned project root
-<TUSHARE_TOKEN>   Your local Tushare token
+<PYTHON_EXE>      项目环境中的 Python 可执行文件
+<PROJECT_ROOT>    项目根目录
+<TUSHARE_TOKEN>   你的本地 Tushare token
 ```
 
-Do not commit real tokens or personal absolute paths to a public repository.
+不要把真实 token、个人绝对路径或本机用户名提交到公开仓库。
 
-## Available Tools
+## 当前可用工具
 
-- `health_check`
-- `get_project_info`
-- `resolve_stock_code_tool`
-- `get_stock_basic_tool`
-- `get_daily_prices_tool`
-- `get_daily_basic_tool`
-- `get_stock_market_data_tool`
-- `analyze_price_trend_tool`
-- `generate_price_chart_tool`
-- `generate_stock_charts_tool`
+当前 MCP Server 暴露 6 个工具：
 
-## Supported Transports
+| 工具 | 说明 |
+|---|---|
+| `health_check` | 检查 MCP Server 是否正常运行 |
+| `get_project_info` | 返回项目名、server 名、目录配置和 token 配置状态 |
+| `resolve_instrument_tool` | 将自然语言输入、股票代码或交易对解析为统一金融标的 |
+| `get_ohlcv_tool` | 获取统一 OHLCV 行情数据 |
+| `analyze_ohlcv_price_trend_tool` | 基于 OHLCV 计算收益率、波动率、最大回撤、均线和极端交易日 |
+| `generate_ohlcv_price_chart_tool` | 基于 OHLCV 生成价格走势图 |
+
+旧版 `resolve_stock_code_tool`、`get_daily_prices_tool`、`analyze_price_trend_tool` 等工具已经被统一工具替代。
+
+## 支持的传输方式
 
 ```text
 stdio
 streamable-http
 ```
 
-SSE is not recommended for new work.
+新项目优先使用 `stdio` 或 Streamable HTTP。SSE 不建议作为后续主要方向。
 
 ## Streamable HTTP
 
-Start the MCP Server first:
+先手动启动 MCP Server：
 
 ```powershell
 cd "<PROJECT_ROOT>"
 & "<PYTHON_EXE>" -m src.mcp_server.server --transport streamable-http --host 127.0.0.1 --port 8000 --path /mcp
 ```
 
-Expected startup output includes:
+启动成功时，终端会出现类似输出：
 
 ```text
 Uvicorn running on http://127.0.0.1:8000
 ```
 
-The MCP endpoint is:
+MCP endpoint 是：
 
 ```text
 http://127.0.0.1:8000/mcp
 ```
 
-Browser access to `/` may return `404`, and direct browser access to `/mcp` may return `406`. That is normal because MCP clients must speak the MCP protocol; the endpoint is not a normal web page.
+直接用浏览器访问 `/` 返回 `404`，直接访问 `/mcp` 返回 `406` 都是正常现象。MCP endpoint 不是普通网页，需要 MCP 客户端按协议访问。
 
-### Cherry Studio Streamable HTTP Example
+### Cherry Studio Streamable HTTP 示例
 
-Use JSON import:
+JSON 导入示例：
 
 ```json
 {
   "mcpServers": {
-    "tushareFinancialAnalystHttp": {
+    "financeMcpAgentHttp": {
       "type": "streamableHttp",
       "url": "http://127.0.0.1:8000/mcp"
     }
@@ -72,12 +74,12 @@ Use JSON import:
 }
 ```
 
-If your client uses a different type name, try:
+如果客户端使用另一种类型命名，可以尝试：
 
 ```json
 {
   "mcpServers": {
-    "tushareFinancialAnalystHttp": {
+    "financeMcpAgentHttp": {
       "type": "streamable-http",
       "url": "http://127.0.0.1:8000/mcp"
     }
@@ -85,22 +87,20 @@ If your client uses a different type name, try:
 }
 ```
 
-Keep Tushare credentials in the server process environment or `.env`; do not put secrets in the URL.
+Tushare token 建议放在服务端 `.env` 或启动进程环境变量中，不要放进 URL。
 
 ## stdio
 
-`stdio` mode lets the MCP client start the Python process directly.
+`stdio` 模式由 MCP 客户端直接启动 Python 进程。使用 stdio 时，通常不需要你手动启动 server。
 
-In stdio mode, do not start the server manually. The client launches it.
+### 通用 stdio 配置
 
-### Generic stdio Configuration
-
-Some clients support `cwd`:
+如果客户端支持 `cwd`：
 
 ```json
 {
   "mcpServers": {
-    "tushareFinancialAnalyst": {
+    "financeMcpAgent": {
       "type": "stdio",
       "command": "<PYTHON_EXE>",
       "args": [
@@ -118,12 +118,12 @@ Some clients support `cwd`:
 }
 ```
 
-If the client does not support `cwd`, set `PYTHONPATH`:
+如果客户端不支持 `cwd`，可以设置 `PYTHONPATH`：
 
 ```json
 {
   "mcpServers": {
-    "tushareFinancialAnalyst": {
+    "financeMcpAgent": {
       "type": "stdio",
       "command": "<PYTHON_EXE>",
       "args": [
@@ -141,12 +141,12 @@ If the client does not support `cwd`, set `PYTHONPATH`:
 }
 ```
 
-On Windows, if a client rejects escaped backslashes in JSON, use forward slashes in paths:
+Windows 客户端如果不接受反斜杠路径，可以用正斜杠：
 
 ```json
 {
   "mcpServers": {
-    "tushareFinancialAnalyst": {
+    "financeMcpAgent": {
       "type": "stdio",
       "command": "C:/path/to/env/python.exe",
       "args": [
@@ -164,12 +164,12 @@ On Windows, if a client rejects escaped backslashes in JSON, use forward slashes
 }
 ```
 
-As a fallback for Windows clients that have trouble launching Python directly, wrap the command with `cmd.exe`:
+如果客户端很难直接启动 Python，可以用 `cmd.exe` 包一层：
 
 ```json
 {
   "mcpServers": {
-    "tushareFinancialAnalyst": {
+    "financeMcpAgent": {
       "type": "stdio",
       "command": "cmd.exe",
       "args": [
@@ -184,13 +184,13 @@ As a fallback for Windows clients that have trouble launching Python directly, w
 }
 ```
 
-## Common Issues
+## 常见问题
 
 ### `ERR_CONNECTION_REFUSED`
 
-Usually means the Streamable HTTP server is not running or the port is wrong.
+通常说明 Streamable HTTP server 没有启动，或端口不一致。
 
-Start the server and confirm:
+检查端口：
 
 ```powershell
 Test-NetConnection 127.0.0.1 -Port 8000
@@ -198,19 +198,19 @@ Test-NetConnection 127.0.0.1 -Port 8000
 
 ### `404 Not Found`
 
-Accessing `http://127.0.0.1:8000/` returns `404` because the MCP endpoint is `/mcp`.
+访问 `http://127.0.0.1:8000/` 返回 `404` 是正常的，因为 MCP endpoint 是 `/mcp`。
 
 ### `406 Not Acceptable`
 
-Direct browser access to `/mcp` may return `406`. Use an MCP client rather than a browser.
+直接浏览器访问 `/mcp` 可能返回 `406`，请使用 MCP 客户端连接。
 
-### JSON import says invalid input
+### JSON 导入提示无效
 
-Check:
+检查：
 
-- JSON has no comments.
-- JSON uses double quotes.
-- No trailing commas.
-- Windows backslashes are escaped as `\\`, or use forward slashes.
-- The client supports the fields you used, such as `cwd` or `type`.
+- JSON 不能有注释。
+- JSON 必须使用英文双引号。
+- 不能有多余逗号。
+- Windows 反斜杠需要写成 `\\`，或者直接使用 `/`。
+- 客户端是否支持你写的字段，例如 `cwd` 或 `type`。
 

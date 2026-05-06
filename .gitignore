@@ -2,6 +2,9 @@
 .env
 *.env
 !.env.example
+*.pem
+*.key
+*.crt
 
 # Python
 __pycache__/
@@ -10,12 +13,16 @@ __pycache__/
 *.pyd
 .pytest_cache/
 .ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
 
 # Virtual environments and package caches
 .venv/
 venv/
 env/
 .uv-cache/
+pip-wheel-metadata/
 
 # Local IDE state
 .vscode/
@@ -25,10 +32,18 @@ env/
 data_cache/
 charts/
 reports/
+*.log
+*.sqlite
+*.sqlite3
+*.db
 
 # Local-only learning notes
 docs/learning/
 docs/project_workflow.md
+
+# Generated notebooks / scratch files
+scratch/
+tmp/
 
 # OS files
 .DS_Store
