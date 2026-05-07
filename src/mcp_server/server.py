@@ -49,10 +49,11 @@ def create_mcp_server(
             "The 'mcp' package is not installed. Install dependencies with `pip install mcp`."
         ) from exc
 
-    from src.mcp_server.tools_stock import register_stock_tools
-    from src.mcp_server.tools_analysis import register_analysis_tools
-    from src.mcp_server.tools_chart import register_chart_tools
-
+    from src.mcp_server.tools_instruments import register_instrument_tools
+    from src.mcp_server.tools_market_data import register_market_data_tools
+    from src.mcp_server.tools_valuation import register_valuation_tools
+    from src.mcp_server.tools_fundamentals import register_fundamentals_tools
+    from src.mcp_server.tools_comparison import register_comparison_tools
 
     mcp = FastMCP(
         SERVER_NAME,
@@ -62,9 +63,11 @@ def create_mcp_server(
     )
     mcp.tool()(health_check)
     mcp.tool()(get_project_info)
-    register_stock_tools(mcp)
-    register_analysis_tools(mcp)
-    register_chart_tools(mcp)
+    register_instrument_tools(mcp)
+    register_market_data_tools(mcp)
+    register_valuation_tools(mcp)
+    register_fundamentals_tools(mcp)
+    register_comparison_tools(mcp)
 
     return mcp
 

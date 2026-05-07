@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import re
 
-from src.services.tushare_client import get_tushare_client
+from src.providers.tushare.client import get_client
 from src.storage.cache import load_json_cache, save_json_cache
 from src.storage.paths import get_data_cache_dir
 
 
 _CODE_WITH_EXCHANGE_RE = re.compile(r"^\d{6}\.(SH|SZ|BJ)$", re.IGNORECASE)
 _CODE_ONLY_RE = re.compile(r"^\d{6}$")
+
 
 def infer_exchange(code: str) -> str:
     """根据 6 位中国股票代码推断交易所后缀。
@@ -24,7 +25,7 @@ def infer_exchange(code: str) -> str:
 
     异常：
         如果无法根据代码首位推断交易所，则抛出 ValueError。
-    """
+    """    
     if code.startswith("6"):
         return "SH"
     if code.startswith(("0", "3")):
@@ -32,7 +33,7 @@ def infer_exchange(code: str) -> str:
     if code.startswith(("4", "8", "9")):
         return "BJ"
 
-    raise ValueError(f"无法根据股票代码推断交易所：{code}")
+    raise ValueError(f"Unable to infer exchange from code: {code}")
 
 
 def normalize_stock_code(name_or_code: str) -> str | None:
@@ -57,6 +58,7 @@ def normalize_stock_code(name_or_code: str) -> str | None:
 
     return None
 
+
 def get_stock_basic() -> list[dict]:
     """Fetch A-share stock basic information from Tushare, with local cache."""
     cache_path = get_data_cache_dir() / "stock_basic.json"
@@ -65,7 +67,7 @@ def get_stock_basic() -> list[dict]:
     if cached:
         return cached
 
-    pro = get_tushare_client()
+    pro = get_client()
 
     try:
         df = pro.stock_basic(
@@ -102,14 +104,14 @@ def resolve_stock_code(name_or_code: str) -> dict:
         - match_type：匹配方式，例如 code、exact、fuzzy
         - message：解析结果说明
         如果出现多个模糊匹配，还会返回 candidates 候选列表。
-    """
+    """    
     if not name_or_code or not name_or_code.strip():
         return {
             "matched": False,
             "input": name_or_code,
             "ts_code": None,
             "name": None,
-            "message": "输入为空。",
+            "message": "Input is empty.",
         }
 
     normalized = normalize_stock_code(name_or_code)
@@ -120,14 +122,15 @@ def resolve_stock_code(name_or_code: str) -> dict:
             "ts_code": normalized,
             "name": None,
             "match_type": "code",
-            "message": "已根据股票代码格式完成解析。",
+            "message": "Resolved by stock code format.",
         }
 
     query = name_or_code.strip()
     stocks = get_stock_basic()
 
     exact_matches = [
-        item for item in stocks
+        item
+        for item in stocks
         if item.get("name") == query or item.get("symbol") == query
     ]
 
@@ -143,11 +146,12 @@ def resolve_stock_code(name_or_code: str) -> dict:
             "market": item.get("market"),
             "list_date": item.get("list_date"),
             "match_type": "exact",
-            "message": "已根据股票名称或股票代码的精确匹配完成解析。",
+            "message": "Resolved by exact stock name or symbol match.",
         }
 
     fuzzy_matches = [
-        item for item in stocks
+        item
+        for item in stocks
         if query in item.get("name", "")
     ]
 
@@ -163,7 +167,7 @@ def resolve_stock_code(name_or_code: str) -> dict:
             "market": item.get("market"),
             "list_date": item.get("list_date"),
             "match_type": "fuzzy",
-            "message": "已根据股票名称的模糊匹配完成解析。",
+            "message": "Resolved by fuzzy stock name match.",
         }
 
     if len(fuzzy_matches) > 1:
@@ -173,7 +177,7 @@ def resolve_stock_code(name_or_code: str) -> dict:
             "ts_code": None,
             "name": None,
             "candidates": fuzzy_matches[:10],
-            "message": "匹配到多只股票，请提供更具体的名称或代码。",
+            "message": "Multiple stocks matched. Please provide a more specific name or code.",
         }
 
     return {
@@ -181,5 +185,5 @@ def resolve_stock_code(name_or_code: str) -> dict:
         "input": name_or_code,
         "ts_code": None,
         "name": None,
-        "message": "未找到匹配的股票。",
+        "message": "No matching stock found.",
     }

@@ -1,4 +1,4 @@
-# 旧工具迁移说明
+﻿# 旧工具迁移说明
 
 本项目已经从早期 Tushare-only MVP 结构迁移到统一多数据源架构。旧 MCP 工具和旧 services 文件已经不再作为公开工具入口使用。
 
@@ -48,7 +48,7 @@ generate_ohlcv_price_chart_tool
 ```text
 src/models/valuation.py
 src/providers/tushare/valuation.py
-src/services/unified_valuation.py
+src/services/data/valuation.py + services/analysis/valuation.py
 src/mcp_server/tools_valuation.py
 ```
 
@@ -84,7 +84,7 @@ src/services/market_data.py 同时写 Tushare 获取、分析、图表和错误�
 推荐：
 src/providers/tushare/xxx.py
 src/models/xxx.py
-src/services/unified_xxx.py
+src/services/data/xxx.py + src/services/analysis/xxx.py
 src/mcp_server/tools_xxx.py
 ```
 
@@ -93,9 +93,10 @@ src/mcp_server/tools_xxx.py
 ```text
 src/models/order_book.py
 src/providers/binance/order_book.py
-src/services/unified_order_book.py
+src/services/data/order_book.py + services/analysis/order_book.py
 src/mcp_server/tools_order_book.py
 ```
 
 这样项目可以持续扩展，而不会重新变成单数据源脚本集合。
+
 

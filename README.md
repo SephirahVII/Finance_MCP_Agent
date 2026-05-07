@@ -16,8 +16,12 @@ Implemented:
 - Unified instrument resolution
 - Unified OHLCV market data model
 - Tushare provider for China A-share daily OHLCV data
+- Tushare `daily_basic` valuation adapter with structured permission handling
+- Tushare fundamentals adapter for income, balance sheet, cashflow, and financial indicators
+- China market trade calendar
+- Benchmark comparison for OHLCV return, volatility, drawdown, and correlation
 - Price trend analysis based on OHLCV data
-- Price chart generation
+- Configurable price chart generation
 - Local JSON cache helpers and runtime output directories
 - Optional Agent runner with OpenAI-compatible LLM providers such as DeepSeek
 
@@ -30,12 +34,16 @@ Currently exposed MCP tools:
 | `resolve_instrument_tool` | Resolve user input into a unified financial instrument |
 | `get_ohlcv_tool` | Fetch unified OHLCV data |
 | `analyze_ohlcv_price_trend_tool` | Analyze return, volatility, drawdown, moving averages, and extreme days |
-| `generate_ohlcv_price_chart_tool` | Generate a price chart from unified OHLCV data |
+| `generate_ohlcv_price_chart_tool` | Generate a configurable price chart from unified OHLCV data |
+| `get_valuation_tool` | Fetch unified valuation and trading-metric data |
+| `analyze_valuation_tool` | Analyze PE, PB, market value, turnover, and valuation percentiles |
+| `get_trade_calendar_tool` | Fetch China market trading calendar records |
+| `get_fundamentals_tool` | Fetch income, balance sheet, cashflow, or financial indicator data |
+| `analyze_fundamentals_tool` | Analyze profitability, growth, balance sheet, and cashflow quality |
+| `compare_ohlcv_with_benchmark_tool` | Compare one instrument with a benchmark |
 
 Not implemented yet:
 
-- `daily_basic` valuation tools
-- Fundamental statement tools
 - Order book tools
 - AkShare provider
 - Binance provider
@@ -69,21 +77,42 @@ src/
     server.py                # FastMCP server entrypoint
     tools_instruments.py     # Unified instrument tools
     tools_market_data.py     # Unified OHLCV, analysis, and chart tools
+    tools_valuation.py       # Unified valuation tools
+    tools_fundamentals.py    # Unified fundamentals tools
+    tools_comparison.py      # Benchmark comparison tools
   models/
     instruments.py           # Unified financial instrument model
     market_data.py           # OHLCV data models
     analysis.py              # Price trend analysis result models
+    valuation.py             # Valuation data and analysis result models
+    fundamentals.py          # Financial statement and indicator models
+    comparison.py            # Benchmark comparison result models
     errors.py                # Shared error models
   providers/
     tushare/
       client.py              # Tushare client creation
       instruments.py         # Tushare / China A-share instrument resolution
       market_data.py         # Tushare daily data adapter
+      valuation.py           # Tushare daily_basic adapter
+      fundamentals.py        # Tushare financial statements and indicators
   services/
     instruments.py           # Unified instrument resolution service
-    unified_market_data.py   # Provider routing for OHLCV data
-    unified_analysis.py      # OHLCV analysis
-    unified_charts.py        # Chart generation
+    data/
+      instruments.py         # Unified instrument resolution
+      market_data.py         # Provider routing for OHLCV data
+      valuation.py           # Valuation data routing
+      fundamentals.py        # Fundamentals data routing
+    analysis/
+      price.py               # Single-instrument OHLCV analysis
+      valuation.py           # Valuation analysis
+      fundamentals.py        # Fundamentals analysis
+      multivariate.py        # Benchmark and multi-series analysis
+    metrics/
+      price.py               # Price and return formulas
+      technical.py           # Technical indicator formulas
+      multivariate.py        # Cross-series formulas
+    charts/
+      price.py               # Price chart generation
   storage/
     cache.py                 # JSON cache helpers
     paths.py                 # Runtime output paths
@@ -143,19 +172,43 @@ python -c "from src.mcp_server.server import create_mcp_server; print(type(creat
 Resolve an instrument:
 
 ```powershell
-python -c "from src.services.instruments import resolve_instrument; print(resolve_instrument('贵州茅台').to_dict())"
+python -c "from src.services.data.instruments import resolve_instrument; print(resolve_instrument('贵州茅台').to_dict())"
 ```
 
 Fetch unified OHLCV data:
 
 ```powershell
-python -c "from src.services.unified_market_data import get_ohlcv; r=get_ohlcv(symbol='600519.SH', market='cn', asset_type='stock', start_date='2024-01-01', end_date='2024-01-31'); print(r.success, len(r.records), r.provider)"
+python -c "from src.services.data.market_data import get_ohlcv; r=get_ohlcv(symbol='600519.SH', market='cn', asset_type='stock', start_date='2024-01-01', end_date='2024-01-31'); print(r.success, len(r.records), r.provider)"
 ```
 
 Analyze price trend:
 
 ```powershell
-python -c "from src.services.unified_analysis import analyze_ohlcv_price_trend; r=analyze_ohlcv_price_trend(symbol='600519.SH', market='cn', asset_type='stock', start_date='2024-01-01', end_date='2024-01-31'); print(r.success, r.metrics.to_dict() if r.metrics else r.to_dict())"
+python -c "from src.services.analysis.price import analyze_ohlcv_price_trend; r=analyze_ohlcv_price_trend(symbol='600519.SH', market='cn', asset_type='stock', start_date='2024-01-01', end_date='2024-01-31'); print(r.success, r.metrics.to_dict() if r.metrics else r.to_dict())"
+```
+
+Fetch valuation data:
+
+```powershell
+python -c "from src.services.data.valuation import get_valuation; r=get_valuation(symbol='600519.SH', market='cn', asset_type='stock', start_date='2024-01-01', end_date='2024-01-31'); print(r.success, r.error_type, len(r.records), r.message)"
+```
+
+Generate a candlestick chart with MA5, MA20, and volume:
+
+```powershell
+python -c "from src.services.charts.price import generate_ohlcv_price_chart; r=generate_ohlcv_price_chart(symbol='600519.SH', market='cn', asset_type='stock', start_date='2024-01-01', end_date='2024-01-31', chart_type='candlestick', ma_windows='5,20', show_volume=True); print(r)"
+```
+
+Analyze fundamentals:
+
+```powershell
+python -c "from src.services.analysis.fundamentals import analyze_fundamentals; r=analyze_fundamentals(symbol='600519.SH', market='cn', asset_type='stock', start_date='2022-01-01', end_date='2024-12-31'); print(r.success, r.metrics.to_dict() if r.metrics else r.to_dict())"
+```
+
+Compare a stock with CSI 300:
+
+```powershell
+python -c "from src.services.analysis.multivariate import compare_ohlcv_with_benchmark; r=compare_ohlcv_with_benchmark(primary_symbol='600519.SH', benchmark_symbol='000300.SH', market='cn', primary_asset_type='stock', benchmark_asset_type='index', start_date='2024-01-01', end_date='2024-12-31'); print(r.success, r.metrics.to_dict() if r.metrics else r.to_dict())"
 ```
 
 Generated runtime files are written under:
@@ -222,7 +275,7 @@ src/providers/
     client.py
     instruments.py
     market_data.py
-    valuation.py       # planned daily_basic adapter
+    valuation.py       # daily_basic adapter
     fundamentals.py    # planned statements / financial indicators
   akshare/
     client.py
@@ -241,12 +294,13 @@ Planned unified services:
 
 ```text
 src/services/
-  unified_valuation.py
-  unified_fundamentals.py
+  data/valuation.py
+  data/fundamentals.py
+  analysis/valuation.py
+  analysis/fundamentals.py
   unified_order_book.py
   analysis_dataset.py
   factors.py
 ```
 
 This keeps provider-specific APIs isolated and lets MCP tools call stable unified services.
-

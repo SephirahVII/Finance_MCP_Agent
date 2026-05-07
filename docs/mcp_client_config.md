@@ -14,7 +14,7 @@
 
 ## 当前可用工具
 
-当前 MCP Server 暴露 6 个工具：
+当前 MCP Server 暴露 12 个工具：
 
 | 工具 | 说明 |
 |---|---|
@@ -23,7 +23,13 @@
 | `resolve_instrument_tool` | 将自然语言输入、股票代码或交易对解析为统一金融标的 |
 | `get_ohlcv_tool` | 获取统一 OHLCV 行情数据 |
 | `analyze_ohlcv_price_trend_tool` | 基于 OHLCV 计算收益率、波动率、最大回撤、均线和极端交易日 |
-| `generate_ohlcv_price_chart_tool` | 基于 OHLCV 生成价格走势图 |
+| `generate_ohlcv_price_chart_tool` | 基于 OHLCV 生成可配置价格图 |
+| `get_valuation_tool` | 获取统一估值和交易指标数据 |
+| `analyze_valuation_tool` | 分析 PE、PB、市值、换手率和估值分位 |
+| `get_trade_calendar_tool` | 获取中国市场交易日历 |
+| `get_fundamentals_tool` | 获取利润表、资产负债表、现金流量表或财务指标 |
+| `analyze_fundamentals_tool` | 分析盈利、成长、资产负债和现金流质量 |
+| `compare_ohlcv_with_benchmark_tool` | 对比标的与基准指数的表现 |
 
 旧版 `resolve_stock_code_tool`、`get_daily_prices_tool`、`analyze_price_trend_tool` 等工具已经被统一工具替代。
 
@@ -213,4 +219,3 @@ Test-NetConnection 127.0.0.1 -Port 8000
 - 不能有多余逗号。
 - Windows 反斜杠需要写成 `\\`，或者直接使用 `/`。
 - 客户端是否支持你写的字段，例如 `cwd` 或 `type`。
-

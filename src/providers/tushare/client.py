@@ -8,8 +8,9 @@ from src.config.settings import settings
 class TushareTokenMissingError(RuntimeError):
     """Raised when TUSHARE_TOKEN is not configured."""
 
+
 @lru_cache(maxsize=1)
-def get_tushare_client():
+def get_client():
     """创建并缓存 Tushare Pro 客户端。
 
     输入：
@@ -37,3 +38,4 @@ def get_tushare_client():
         ) from exc
 
     return ts.pro_api(settings.tushare_token)
+
