@@ -1,0 +1,153 @@
+from __future__ import annotations
+
+import re
+
+from invesagent_core.providers.tushare.client import get_client
+from invesagent_core.storage.cache import load_json_cache, save_json_cache
+from invesagent_core.storage.paths import get_data_cache_dir
+
+
+_CODE_WITH_EXCHANGE_RE = re.compile(r"^\d{6}\.(SH|SZ|BJ)$", re.IGNORECASE)
+_CODE_ONLY_RE = re.compile(r"^\d{6}$")
+
+
+def infer_exchange(code: str) -> str:
+    """Infer the A-share exchange suffix from a six-digit stock code."""
+    if code.startswith("6"):
+        return "SH"
+    if code.startswith(("0", "3")):
+        return "SZ"
+    if code.startswith(("4", "8", "9")):
+        return "BJ"
+
+    raise ValueError(f"Unable to infer exchange from code: {code}")
+
+
+def normalize_stock_code(name_or_code: str) -> str | None:
+    """Normalize a six-digit A-share code into a Tushare ts_code."""
+    value = name_or_code.strip().upper()
+
+    if _CODE_WITH_EXCHANGE_RE.match(value):
+        return value
+
+    if _CODE_ONLY_RE.match(value):
+        exchange = infer_exchange(value)
+        return f"{value}.{exchange}"
+
+    return None
+
+
+def get_stock_basic() -> list[dict]:
+    """Fetch A-share stock basic information from Tushare, with local cache."""
+    cache_path = get_data_cache_dir() / "stock_basic.json"
+
+    cached = load_json_cache(cache_path)
+    if cached:
+        return cached
+
+    pro = get_client()
+
+    try:
+        df = pro.stock_basic(
+            exchange="",
+            list_status="L",
+            fields="ts_code,symbol,name,area,industry,list_date,market",
+        )
+    except Exception as exc:
+        fallback = load_json_cache(cache_path)
+        if fallback:
+            return fallback
+        raise exc
+
+    if df is None or df.empty:
+        return []
+
+    records = df.fillna("").to_dict(orient="records")
+    save_json_cache(cache_path, records)
+    return records
+
+
+def resolve_stock_code(name_or_code: str) -> dict:
+    """Resolve a stock name, symbol, or Tushare ts_code into a normalized ts_code."""
+    if not name_or_code or not name_or_code.strip():
+        return {
+            "matched": False,
+            "input": name_or_code,
+            "ts_code": None,
+            "name": None,
+            "message": "Input is empty.",
+        }
+
+    normalized = normalize_stock_code(name_or_code)
+    if normalized:
+        return {
+            "matched": True,
+            "input": name_or_code,
+            "ts_code": normalized,
+            "name": None,
+            "match_type": "code",
+            "message": "Resolved by stock code format.",
+        }
+
+    query = name_or_code.strip()
+    stocks = get_stock_basic()
+
+    exact_matches = [
+        item
+        for item in stocks
+        if item.get("name") == query or item.get("symbol") == query
+    ]
+
+    if len(exact_matches) == 1:
+        item = exact_matches[0]
+        return {
+            "matched": True,
+            "input": name_or_code,
+            "ts_code": item["ts_code"],
+            "name": item["name"],
+            "industry": item.get("industry"),
+            "area": item.get("area"),
+            "market": item.get("market"),
+            "list_date": item.get("list_date"),
+            "match_type": "exact",
+            "message": "Resolved by exact stock name or symbol match.",
+        }
+
+    fuzzy_matches = [
+        item
+        for item in stocks
+        if query in item.get("name", "") or item.get("name", "") in query
+    ]
+
+    if len(fuzzy_matches) == 1:
+        item = fuzzy_matches[0]
+        return {
+            "matched": True,
+            "input": name_or_code,
+            "ts_code": item["ts_code"],
+            "name": item["name"],
+            "industry": item.get("industry"),
+            "area": item.get("area"),
+            "market": item.get("market"),
+            "list_date": item.get("list_date"),
+            "match_type": "fuzzy",
+            "message": "Resolved by fuzzy stock name match.",
+        }
+
+    if len(fuzzy_matches) > 1:
+        return {
+            "matched": False,
+            "input": name_or_code,
+            "ts_code": None,
+            "name": None,
+            "candidates": fuzzy_matches[:10],
+            "message": "Multiple stocks matched. Please provide a more specific name or code.",
+        }
+
+    return {
+        "matched": False,
+        "input": name_or_code,
+        "ts_code": None,
+        "name": None,
+        "message": "No matching stock found.",
+    }

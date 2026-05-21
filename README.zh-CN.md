@@ -1,300 +1,167 @@
-# Finance MCP Agent
+# InvesAgent
 
 [English](README.md) | 中文
 
-这是一个本地 MCP 金融数据分析 Agent 项目。当前版本以 Tushare 的中国 A 股 OHLCV 行情为核心，同时已经开始调整为多数据源架构，后续可以接入 AkShare、Binance 等数据源。
+InvesAgent 是一个本地金融数据与研究 Agent 项目。当前项目拆分为两个相互独立但可以协同工作的包：
+
+```text
+InvesAgent/
+  invesagent_mcp/     # 独立 MCP Server + 内置金融核心
+  invesagent_agent/   # LangGraph 研究 Agent 与工作流
+```
 
 > 免责声明：本项目仅用于数据分析、工程实践和学习，不构成任何投资建议。
 
-## 当前进展
+## 项目能力
 
-项目已经从最初的 Tushare 单数据源原型，迁移到更清晰的统一架构：
+- 将金融数据获取、分析和图表能力暴露为 MCP 工具。
+- 支持 Tushare 与 AKShare 数据源。
+- 支持 OHLCV 行情、估值、基本面、交易日历、行业列表、行业成分股。
+- 支持可配置价格图表生成。
+- 通过 MCP Client 让 LangGraph 工作流调用独立 MCP Server。
+- 为任务规划、量价分析、基本面分析、行业分析、研报生成、结果审查配置独立角色提示词。
+
+## 两个包的职责
+
+`invesagent_mcp` 是独立 MCP Server。它内置金融核心，因此可以单独复制、安装和运行：
 
 ```text
-Agent / MCP Client
-  -> MCP tools
-    -> services 统一业务接口
-      -> providers
-        -> Tushare
-        -> AkShare      # 计划中
-        -> Binance      # 计划中
-      -> storage cache
-      -> analysis / charts / future factors
+invesagent_mcp/src/
+  invesagent_core/    # models、providers、services、metrics、charts、storage、config
+  invesagent_mcp/     # MCP server 与 MCP tools 注册
 ```
 
-已经完成：
-
-- FastMCP Server，支持 `stdio` 和 Streamable HTTP
-- 统一标的解析入口
-- 统一 OHLCV 行情数据模型
-- Tushare A 股日线 OHLCV 数据适配
-- Tushare `daily_basic` 估值数据适配，并支持权限不足的结构化错误返回
-- Tushare 财务三大报表和财务指标适配
-- 中国市场交易日历
-- 基于 OHLCV 的基准对比分析
-- 基于 OHLCV 的价格趋势分析
-- 基于 OHLCV 的可配置价格图生成
-- 本地 JSON 缓存工具和运行产物目录
-- 可选 Agent 运行入口，支持 DeepSeek 等 OpenAI-compatible API
-
-当前 MCP 暴露 12 个工具：
-
-| 工具 | 作用 |
-|---|---|
-| `health_check` | 检查 MCP Server 是否正常运行 |
-| `get_project_info` | 返回项目与运行配置摘要 |
-| `resolve_instrument_tool` | 将用户输入解析为统一金融标的 |
-| `get_ohlcv_tool` | 获取统一 OHLCV 行情数据 |
-| `analyze_ohlcv_price_trend_tool` | 分析收益率、波动率、最大回撤、均线和极端交易日 |
-| `generate_ohlcv_price_chart_tool` | 根据统一 OHLCV 数据生成可配置价格图 |
-| `get_valuation_tool` | 获取统一估值和交易指标数据 |
-| `analyze_valuation_tool` | 分析 PE、PB、市值、换手率和估值分位 |
-| `get_trade_calendar_tool` | 获取中国市场交易日历 |
-| `get_fundamentals_tool` | 获取利润表、资产负债表、现金流量表或财务指标 |
-| `analyze_fundamentals_tool` | 分析盈利、成长、资产负债和现金流质量 |
-| `compare_ohlcv_with_benchmark_tool` | 对比标的与基准指数的表现 |
-
-暂未完成：
-
-- 订单簿工具
-- AkShare 数据源
-- Binance 数据源
-- 多 Agent 工作流
-- Web 前端
-
-## 项目结构
+`invesagent_agent` 是 Agent 侧：
 
 ```text
-src/
-  agent/
-    agent.py                 # Agent 运行入口，负责通过 MCP 调用工具
-    prompts.py               # 金融分析提示词
-  config/
-    settings.py              # 环境变量和运行配置
-  mcp_server/
-    server.py                # FastMCP Server 入口
-    tools_instruments.py     # 统一标的工具
-    tools_market_data.py     # 统一 OHLCV、分析和图表工具
-    tools_valuation.py       # 统一估值工具
-    tools_fundamentals.py    # 统一财务工具
-    tools_comparison.py      # 基准对比工具
-  models/
-    instruments.py           # 统一金融标的数据结构
-    market_data.py           # OHLCV 数据结构
-    analysis.py              # 价格趋势分析结果结构
-    valuation.py             # 估值数据和估值分析结果结构
-    fundamentals.py          # 财务报表和财务指标结构
-    comparison.py            # 基准对比结果结构
-    errors.py                # 通用错误结构
-  providers/
-    tushare/
-      client.py              # Tushare client 创建
-      instruments.py         # Tushare / A 股标的解析
-      market_data.py         # Tushare 日线行情适配
-      valuation.py           # Tushare daily_basic 适配
-      fundamentals.py        # Tushare 财务报表和财务指标适配
-  services/
-    instruments.py           # 统一标的解析服务
-    data/
-      instruments.py         # 统一标的解析
-      market_data.py         # OHLCV 数据源路由
-      valuation.py           # 估值数据路由
-      fundamentals.py        # 财务数据路由
-    analysis/
-      price.py               # 单标的价格分析
-      valuation.py           # 估值分析
-      fundamentals.py        # 基本面分析
-      multivariate.py        # 基准对比和多序列分析
-    metrics/
-      price.py               # 价格和收益率公式
-      technical.py           # 技术指标公式
-      multivariate.py        # 多序列统计公式
-    charts/
-      price.py               # 价格图生成
-  storage/
-    cache.py                 # JSON 缓存读写
-    paths.py                 # 运行产物路径
-  utils/
-    dates.py                 # 日期格式规范化
+invesagent_agent/src/invesagent_agent/
+  agents/             # LangGraph 节点实现
+  clients/            # MCP Client 与 OpenAI-compatible LLM Client
+  prompts/            # 各角色独立提示词
+  schemas/            # 任务规划、分析、审查的结构化输出
+  workflows/          # LangGraph 工作流与命令行入口
+  runners/            # console script 入口
+```
+
+Agent 包通过 `invesagent_agent.clients.mcp_client` 调用 MCP Server，不直接 import `invesagent_core`。
+
+## 当前 MCP 工具
+
+当前 MCP Server 暴露 15 个工具：
+
+```text
+health_check
+get_project_info
+resolve_instrument_tool
+get_ohlcv_tool
+analyze_ohlcv_price_trend_tool
+generate_ohlcv_price_chart_tool
+get_trade_calendar_tool
+get_valuation_tool
+analyze_valuation_tool
+get_fundamentals_tool
+analyze_fundamentals_tool
+compare_ohlcv_with_benchmark_tool
+compare_ohlcv_instruments_tool
+list_industries_tool
+get_industry_members_tool
 ```
 
 ## 安装
 
-推荐使用 Python 3.11+：
+推荐在项目根目录同时安装两个包：
 
 ```powershell
-conda create -n tushare-agent python=3.11 -y
-conda activate tushare-agent
-pip install -e . pytest ruff
+cd <PROJECT_ROOT>
+pip install -e invesagent_mcp -e invesagent_agent
 ```
 
-如果不需要 editable 安装：
+也可以分别安装：
 
 ```powershell
-pip install mcp openai openai-agents tushare pandas numpy matplotlib python-dotenv pydantic pydantic-settings pytest ruff
+cd <PROJECT_ROOT>/invesagent_mcp
+pip install -e .
+
+cd <PROJECT_ROOT>/invesagent_agent
+pip install -e .
 ```
 
 ## 配置
 
-复制 `.env.example`：
+两个子包均提供 `.env.example`。
 
-```powershell
-Copy-Item .env.example .env
-```
-
-填写本地密钥：
+如果需要 MCP 获取真实数据，可以创建 `invesagent_mcp/.env` 或项目根目录 `.env`：
 
 ```text
 TUSHARE_TOKEN=your_tushare_token
+```
 
+如果需要启用 LLM Agent 节点，可以创建 `invesagent_agent/.env` 或项目根目录 `.env`：
+
+```text
 LLM_PROVIDER=deepseek
 LLM_BASE_URL=https://api.deepseek.com
 LLM_MODEL=deepseek-v4-flash
 DEEPSEEK_API_KEY=your_deepseek_api_key
 ```
 
-不要提交 `.env`、缓存数据、图表、报告或包含个人路径的信息。
+如果没有配置 LLM，工作流仍可在确定性降级模式下运行，但 LLM 推理、报告写作和审查能力会受到限制。
 
-## 本地检查
+## 启动 MCP
 
-检查 MCP Server 是否能创建：
-
-```powershell
-python -c "from src.mcp_server.server import create_mcp_server; print(type(create_mcp_server()).__name__)"
-```
-
-解析标的：
+stdio：
 
 ```powershell
-python -c "from src.services.data.instruments import resolve_instrument; print(resolve_instrument('贵州茅台').to_dict())"
+cd <PROJECT_ROOT>/invesagent_mcp
+python -m invesagent_mcp.server --transport stdio
 ```
 
-获取统一 OHLCV：
+Streamable HTTP：
 
 ```powershell
-python -c "from src.services.data.market_data import get_ohlcv; r=get_ohlcv(symbol='600519.SH', market='cn', asset_type='stock', start_date='2024-01-01', end_date='2024-01-31'); print(r.success, len(r.records), r.provider)"
+cd <PROJECT_ROOT>/invesagent_mcp
+python -m invesagent_mcp.server --transport streamable-http --host 127.0.0.1 --port 8000 --path /mcp
 ```
 
-分析价格趋势：
+## 运行 LangGraph 工作流
+
+公司研究：
 
 ```powershell
-python -c "from src.services.analysis.price import analyze_ohlcv_price_trend; r=analyze_ohlcv_price_trend(symbol='600519.SH', market='cn', asset_type='stock', start_date='2024-01-01', end_date='2024-01-31'); print(r.success, r.metrics.to_dict() if r.metrics else r.to_dict())"
+cd <PROJECT_ROOT>
+python -m invesagent_agent.workflows.runner "请分析泸州老窖 2022-01-01 到 2024-12-31 的量价表现和基本面" --industry-member-limit 3
 ```
 
-获取估值数据：
+行业研究：
 
 ```powershell
-python -c "from src.services.data.valuation import get_valuation; r=get_valuation(symbol='600519.SH', market='cn', asset_type='stock', start_date='2024-01-01', end_date='2024-01-31'); print(r.success, r.error_type, len(r.records), r.message)"
+cd <PROJECT_ROOT>
+python -m invesagent_agent.workflows.runner "请分析白酒行业 2024-01-01 到 2024-01-31 的主要公司量价表现和基本面" --industry-member-limit 3
 ```
 
-生成包含 MA5、MA20 和成交量的 K 线图：
+## 架构
 
-```powershell
-python -c "from src.services.charts.price import generate_ohlcv_price_chart; r=generate_ohlcv_price_chart(symbol='600519.SH', market='cn', asset_type='stock', start_date='2024-01-01', end_date='2024-01-31', chart_type='candlestick', ma_windows='5,20', show_volume=True); print(r)"
+```mermaid
+flowchart LR
+    A["用户问题"] --> B["LangGraph 工作流"]
+    B --> C["任务规划 Agent"]
+    C --> D["数据获取 Agent"]
+    D --> E["行业分析 Agent"]
+    E --> F["量价分析 Agent"]
+    F --> G["基本面分析 Agent"]
+    G --> H["结果审查 Agent"]
+    H --> I["研报生成 Agent"]
+    D --> J["MCP Client"]
+    E --> J
+    F --> J
+    G --> J
+    J --> K["invesagent_mcp"]
+    K --> L["invesagent_core"]
+    L --> M["Tushare / AKShare"]
 ```
 
-分析基本面：
+## 文档
 
-```powershell
-python -c "from src.services.analysis.fundamentals import analyze_fundamentals; r=analyze_fundamentals(symbol='600519.SH', market='cn', asset_type='stock', start_date='2022-01-01', end_date='2024-12-31'); print(r.success, r.metrics.to_dict() if r.metrics else r.to_dict())"
-```
-
-对比个股与沪深300：
-
-```powershell
-python -c "from src.services.analysis.multivariate import compare_ohlcv_with_benchmark; r=compare_ohlcv_with_benchmark(primary_symbol='600519.SH', benchmark_symbol='000300.SH', market='cn', primary_asset_type='stock', benchmark_asset_type='index', start_date='2024-01-01', end_date='2024-12-31'); print(r.success, r.metrics.to_dict() if r.metrics else r.to_dict())"
-```
-
-运行产物会写入：
-
-```text
-data_cache/
-charts/
-reports/
-```
-
-这些目录已被 Git 忽略。
-
-## 启动 MCP Server
-
-stdio 模式：
-
-```powershell
-python -m src.mcp_server.server --transport stdio
-```
-
-直接在终端运行 stdio MCP Server 时，它会等待 MCP 客户端发送 JSON-RPC 消息，因此不显示普通交互式提示符是正常现象。
-
-Streamable HTTP 模式：
-
-```powershell
-python -m src.mcp_server.server --transport streamable-http --host 127.0.0.1 --port 8000 --path /mcp
-```
-
-本地 MCP 地址：
-
-```text
-http://127.0.0.1:8000/mcp
-```
-
-除非你明确要部署服务并做好认证和网络控制，否则建议保持 `127.0.0.1`。
-
-## 运行 Agent
-
-使用默认问题：
-
-```powershell
-python -m src.agent.agent
-```
-
-使用自定义问题：
-
-```powershell
-python -m src.agent.agent "请分析贵州茅台 2024-01-01 到 2024-01-31 的价格走势，并说明收益率、波动率和最大回撤。"
-```
-
-Agent 会启动本地 MCP Server，调用工具，并输出中文分析。
-
-## MCP 客户端配置
-
-见 [MCP 客户端配置](docs/mcp_client_config.md)。
-
-## 后续数据源扩展
-
-计划中的 provider 结构：
-
-```text
-src/providers/
-  tushare/
-    client.py
-    instruments.py
-    market_data.py
-    valuation.py       # daily_basic
-    fundamentals.py    # 计划：财务报表 / 财务指标
-  akshare/
-    client.py
-    instruments.py
-    market_data.py
-    valuation.py
-    futures.py
-  binance/
-    client.py
-    instruments.py
-    market_data.py     # klines
-    order_book.py      # bids / asks / depth
-```
-
-计划中的统一服务：
-
-```text
-src/services/
-  data/valuation.py
-  data/fundamentals.py
-  analysis/valuation.py
-  analysis/fundamentals.py
-  unified_order_book.py
-  analysis_dataset.py
-  factors.py
-```
-
-这样可以把不同数据源的 API 差异隔离在 provider 层，让 MCP 工具始终调用稳定的统一 service。
+- [MCP 客户端配置](docs/mcp_client_config.md)
+- [旧结构迁移说明](docs/legacy_migration.md)
+- [Agent 工作流设计](docs/architecture/agent_workflow_design.md)

@@ -11,6 +11,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+*.egg-info/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
@@ -29,9 +30,12 @@ pip-wheel-metadata/
 .idea/
 
 # Runtime artifacts
-data_cache/
-charts/
-reports/
+/data_cache/
+/charts/
+/reports/
+**/data_cache/
+**/charts/
+**/reports/
 *.log
 *.sqlite
 *.sqlite3

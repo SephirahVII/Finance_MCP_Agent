@@ -1,27 +1,61 @@
-﻿# 旧工具迁移说明
+# 旧结构迁移说明
 
-本项目已经从早期 Tushare-only MVP 结构迁移到统一多数据源架构。旧 MCP 工具和旧 services 文件已经不再作为公开工具入口使用。
-
-## 已移除的旧 MCP 工具
-
-旧工具包括：
+本项目已经从早期单一 `src/` 混合结构迁移为两个顶层包：
 
 ```text
-resolve_stock_code_tool
-get_stock_basic_tool
-get_daily_prices_tool
-get_daily_basic_tool
-get_stock_market_data_tool
-analyze_price_trend_tool
-generate_price_chart_tool
-generate_stock_charts_tool
+InvesAgent/
+  invesagent_mcp/
+  invesagent_agent/
 ```
 
-它们曾经直接围绕 Tushare A 股数据设计，适合 MVP 阶段快速验证，但不适合后续扩展到 AkShare、Binance、港股、美股、期货、数字货币和订单簿数据。
+## 当前结构
 
-## 当前统一 MCP 工具
+`invesagent_mcp` 是完整 MCP Server，内部包含金融核心：
 
-当前工具减少为 6 个：
+```text
+invesagent_mcp/src/
+  invesagent_core/
+    config/
+    models/
+    providers/
+    services/
+    storage/
+    utils/
+
+  invesagent_mcp/
+    server.py
+    tools/
+```
+
+`invesagent_agent` 是 LangGraph 研究工作流：
+
+```text
+invesagent_agent/src/invesagent_agent/
+  agents/
+  clients/
+  prompts/
+  schemas/
+  workflows/
+  runners/
+  mcp_agent.py
+```
+
+## 迁移关系
+
+| 旧路径 | 新路径 |
+|---|---|
+| `src/models/` | `invesagent_mcp/src/invesagent_core/models/` |
+| `src/providers/` | `invesagent_mcp/src/invesagent_core/providers/` |
+| `src/services/` | `invesagent_mcp/src/invesagent_core/services/` |
+| `src/storage/` | `invesagent_mcp/src/invesagent_core/storage/` |
+| `src/utils/` | `invesagent_mcp/src/invesagent_core/utils/` |
+| `src/mcp_server/` | `invesagent_mcp/src/invesagent_mcp/` |
+| `src/agents/` | `invesagent_agent/src/invesagent_agent/agents/` |
+| `src/workflows/` | `invesagent_agent/src/invesagent_agent/workflows/` |
+
+## 当前 MCP 工具
+
+当前 MCP Server 暴露 15 个工具：
 
 ```text
 health_check
@@ -30,73 +64,29 @@ resolve_instrument_tool
 get_ohlcv_tool
 analyze_ohlcv_price_trend_tool
 generate_ohlcv_price_chart_tool
+get_trade_calendar_tool
+get_valuation_tool
+analyze_valuation_tool
+get_fundamentals_tool
+analyze_fundamentals_tool
+compare_ohlcv_with_benchmark_tool
+compare_ohlcv_instruments_tool
+list_industries_tool
+get_industry_members_tool
 ```
 
-迁移关系：
+## 当前边界
 
-| 旧能力 | 新工具 |
-|---|---|
-| 股票代码解析 | `resolve_instrument_tool` |
-| A 股日线行情 | `get_ohlcv_tool` |
-| 价格趋势分析 | `analyze_ohlcv_price_trend_tool` |
-| 价格图生成 | `generate_ohlcv_price_chart_tool` |
-
-## 仍需在新架构中补回的能力
-
-旧版里的 `daily_basic`、股票基础信息列表、估值分析、批量图表合集等能力，不再直接用旧工具保留，而是计划按统一数据类型重新实现：
+迁移后，MCP 已经是独立子项目：
 
 ```text
-src/models/valuation.py
-src/providers/tushare/valuation.py
-src/services/data/valuation.py + services/analysis/valuation.py
-src/mcp_server/tools_valuation.py
+MCP Client -> invesagent_mcp -> invesagent_core -> providers
 ```
 
-这样做的好处是：Tushare 的 `daily_basic`、AkShare 的港股/美股估值数据，以及后续其他 provider 的估值数据，可以通过同一层 service 暴露给 MCP 工具。
-
-## 当前架构边界
+LangGraph Agent 也通过 MCP Client 调用 MCP Server：
 
 ```text
-models/
-  定义统一数据结构，不直接访问外部 API。
-
-providers/
-  处理具体数据源 API、字段转换、权限错误和数据源特有格式。
-
-services/
-  负责统一业务入口和 provider 路由，不写死某个数据源。
-
-mcp_server/
-  只负责把 services 暴露成 MCP tools。
-
-agent/
-  负责自然语言理解、工具选择和最终中文解释。
+invesagent_agent -> MCP Client -> invesagent_mcp -> invesagent_core
 ```
 
-## 后续迁移原则
-
-新增能力时不要回到旧式结构：
-
-```text
-不推荐：
-src/services/market_data.py 同时写 Tushare 获取、分析、图表和错误处理
-
-推荐：
-src/providers/tushare/xxx.py
-src/models/xxx.py
-src/services/data/xxx.py + src/services/analysis/xxx.py
-src/mcp_server/tools_xxx.py
-```
-
-例如订单簿数据应该走：
-
-```text
-src/models/order_book.py
-src/providers/binance/order_book.py
-src/services/data/order_book.py + services/analysis/order_book.py
-src/mcp_server/tools_order_book.py
-```
-
-这样项目可以持续扩展，而不会重新变成单数据源脚本集合。
-
-
+因此 Agent 侧不再直接导入 `invesagent_core`，后续前端或其他客户端也可以只接入 MCP Server 或 Agent API。

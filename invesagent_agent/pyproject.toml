@@ -1,0 +1,35 @@
+[project]
+name = "invesagent-agent"
+version = "0.1.0"
+description = "LangGraph research agents for InvesAgent."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "langgraph>=0.2.0",
+    "mcp>=1.9.0",
+    "openai>=1.80.0",
+    "openai-agents>=0.0.15",
+    "python-dotenv>=1.0.1",
+    "pydantic>=2.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.5.0",
+]
+
+[project.scripts]
+invesagent-research = "invesagent_agent.runners.research_workflow:main"
+invesagent-mcp-agent = "invesagent_agent.runners.mcp_agent:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
