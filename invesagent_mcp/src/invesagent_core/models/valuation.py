@@ -69,6 +69,9 @@ class ValuationMetrics:
     latest_pb: float | None
     latest_ps_ttm: float | None
     latest_turnover_rate: float | None
+    three_month_avg_turnover_rate: float | None
+    latest_total_share: float | None
+    latest_float_share: float | None
     latest_total_mv: float | None
     latest_circ_mv: float | None
     pe_ttm_percentile: float | None

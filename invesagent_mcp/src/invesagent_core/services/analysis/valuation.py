@@ -94,6 +94,17 @@ def _change_pct(df: pd.DataFrame, column: str) -> float | None:
     return _safe_round((latest / first - 1) * 100)
 
 
+def _recent_average(df: pd.DataFrame, column: str, window: int = 63) -> float | None:
+    if column not in df.columns:
+        return None
+
+    series = df[column].dropna()
+    if series.empty:
+        return None
+
+    return _safe_round(float(series.tail(window).mean()))
+
+
 def analyze_valuation_from_result(
     valuation: ValuationResult,
 ) -> ValuationAnalysisResult:
@@ -147,6 +158,9 @@ def analyze_valuation_from_result(
         latest_pb=_latest_valid(df, "pb"),
         latest_ps_ttm=_latest_valid(df, "ps_ttm"),
         latest_turnover_rate=_latest_valid(df, "turnover_rate"),
+        three_month_avg_turnover_rate=_recent_average(df, "turnover_rate"),
+        latest_total_share=_latest_valid(df, "total_share"),
+        latest_float_share=_latest_valid(df, "float_share"),
         latest_total_mv=_latest_valid(df, "total_mv"),
         latest_circ_mv=_latest_valid(df, "circ_mv"),
         pe_ttm_percentile=_percentile_of_latest(df, "pe_ttm"),

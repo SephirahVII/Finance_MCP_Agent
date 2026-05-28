@@ -30,6 +30,8 @@ def run_reviewer(state: ResearchState) -> ResearchState:
             "warnings": warnings,
         },
         fallback=fallback,
+        role="reviewer",
+        memory=state.get("task_memory", {}),
         warnings=warnings,
     )
 

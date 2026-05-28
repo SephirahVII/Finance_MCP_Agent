@@ -2,24 +2,26 @@
 
 [English](README.md) | 中文
 
-InvesAgent 是一个本地金融数据与研究 Agent 项目。当前项目拆分为两个相互独立但可以协同工作的包：
+InvesAgent 是一个本地金融数据与投资研究 Agent 项目。当前项目拆分为两个相互独立但可协同工作的包：
 
 ```text
 InvesAgent/
   invesagent_mcp/     # 独立 MCP Server + 内置金融核心
-  invesagent_agent/   # LangGraph 研究 Agent 与工作流
+  invesagent_agent/   # LangGraph 对话入口、投资任务管理和研究 Agent
 ```
 
 > 免责声明：本项目仅用于数据分析、工程实践和学习，不构成任何投资建议。
 
 ## 项目能力
 
-- 将金融数据获取、分析和图表能力暴露为 MCP 工具。
-- 支持 Tushare 与 AKShare 数据源。
+- 将金融数据获取、分析计算和图表能力暴露为 MCP 工具。
+- 支持 Tushare 和 AKShare 数据源。
 - 支持 OHLCV 行情、估值、基本面、交易日历、行业列表、行业成分股。
 - 支持可配置价格图表生成。
-- 通过 MCP Client 让 LangGraph 工作流调用独立 MCP Server。
-- 为任务规划、量价分析、基本面分析、行业分析、研报生成、结果审查配置独立角色提示词。
+- 在调用工具前先通过 General Assistant 判断最新用户输入是否需要进入投资研究系统。
+- 普通聊天和金融概念解释不会调用 MCP 工具。
+- 投资研究任务会交给 Investment Task Manager 生成 `task_plan`，再按需分派专业 Agent。
+- 支持量价分析、基本面分析、行业分析、结果审查和报告生成等角色化节点。
 
 ## 两个包的职责
 
@@ -38,8 +40,8 @@ invesagent_agent/src/invesagent_agent/
   agents/             # LangGraph 节点实现
   clients/            # MCP Client 与 OpenAI-compatible LLM Client
   prompts/            # 各角色独立提示词
-  schemas/            # 任务规划、分析、审查的结构化输出
-  workflows/          # LangGraph 工作流与命令行入口
+  schemas/            # 任务规划、分析和审查的结构化输出
+  workflows/          # chat graph、research graph 与命令行入口
   runners/            # console script 入口
 ```
 
@@ -69,43 +71,33 @@ get_industry_members_tool
 
 ## 安装
 
-推荐在项目根目录同时安装两个包：
-
 ```powershell
 cd <PROJECT_ROOT>
 pip install -e invesagent_mcp -e invesagent_agent
 ```
 
-也可以分别安装：
-
-```powershell
-cd <PROJECT_ROOT>/invesagent_mcp
-pip install -e .
-
-cd <PROJECT_ROOT>/invesagent_agent
-pip install -e .
-```
-
 ## 配置
 
-两个子包均提供 `.env.example`。
-
-如果需要 MCP 获取真实数据，可以创建 `invesagent_mcp/.env` 或项目根目录 `.env`：
+复制根目录 `.env.example` 为项目根目录 `.env`，所有子模块只读取这一份配置：
 
 ```text
 TUSHARE_TOKEN=your_tushare_token
-```
 
-如果需要启用 LLM Agent 节点，可以创建 `invesagent_agent/.env` 或项目根目录 `.env`：
-
-```text
 LLM_PROVIDER=deepseek
-LLM_BASE_URL=https://api.deepseek.com
-LLM_MODEL=deepseek-v4-flash
 DEEPSEEK_API_KEY=your_deepseek_api_key
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-chat
+
+OPENAI_API_KEY=your_openai_api_key
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_MODEL=gpt-4.1-mini
+
+LLM_RECORD_USAGE=true
+LLM_PROMPT_CACHE=auto
 ```
 
-如果没有配置 LLM，工作流仍可在确定性降级模式下运行，但 LLM 推理、报告写作和审查能力会受到限制。
+优先使用 `OPENAI_MODEL`、`DEEPSEEK_MODEL` 等 provider 专属配置；旧的
+`LLM_MODEL`、`LLM_BASE_URL` 仍作为兼容 fallback。
 
 ## 启动 MCP
 
@@ -123,41 +115,46 @@ cd <PROJECT_ROOT>/invesagent_mcp
 python -m invesagent_mcp.server --transport streamable-http --host 127.0.0.1 --port 8000 --path /mcp
 ```
 
-## 运行 LangGraph 工作流
+## 运行聊天 / 研究工作流
 
-公司研究：
+默认入口会先由 General Assistant 判断用户最新输入。普通聊天和金融概念解释不会调用工具；投资任务会交给 Investment Task Manager 判断是否需要追问、是否需要工具、以及需要哪些专业 Agent。
 
 ```powershell
 cd <PROJECT_ROOT>
-python -m invesagent_agent.workflows.runner "请分析泸州老窖 2022-01-01 到 2024-12-31 的量价表现和基本面" --industry-member-limit 3
+python -m invesagent_agent.workflows.runner "你好" --show-intent
+python -m invesagent_agent.workflows.runner "DCF 是什么" --show-intent
+python -m invesagent_agent.workflows.runner "贵州茅台 2024-01-01 到 2024-01-31 股票价格走势怎么样" --show-intent
 ```
 
-行业研究：
+可选的命令行多轮历史：
 
 ```powershell
-cd <PROJECT_ROOT>
-python -m invesagent_agent.workflows.runner "请分析白酒行业 2024-01-01 到 2024-01-31 的主要公司量价表现和基本面" --industry-member-limit 3
+python -m invesagent_agent.workflows.runner "帮我分析一下白酒行业" --history-file .invesagent_chat_history.json
+python -m invesagent_agent.workflows.runner "看 2024 年，重点看量价" --history-file .invesagent_chat_history.json
 ```
 
 ## 架构
 
 ```mermaid
 flowchart LR
-    A["用户问题"] --> B["LangGraph 工作流"]
-    B --> C["任务规划 Agent"]
-    C --> D["数据获取 Agent"]
-    D --> E["行业分析 Agent"]
-    E --> F["量价分析 Agent"]
-    F --> G["基本面分析 Agent"]
-    G --> H["结果审查 Agent"]
-    H --> I["研报生成 Agent"]
-    D --> J["MCP Client"]
-    E --> J
-    F --> J
-    G --> J
-    J --> K["invesagent_mcp"]
-    K --> L["invesagent_core"]
-    L --> M["Tushare / AKShare"]
+    A["用户问题"] --> B["Chat Graph"]
+    B --> C["General Assistant"]
+    C --> D{"路由"}
+    D -->|"普通回答"| E["直接 LLM 回复"]
+    D -->|"投资任务"| G["Research Graph"]
+    G --> H["Investment Task Manager"]
+    H --> I["数据获取 Agent"]
+    H --> J["行业分析 Agent 按需"]
+    H --> K["量价分析 Agent 按需"]
+    H --> L["基本面分析 Agent 按需"]
+    H --> M["结果审查 Agent 按需"]
+    H --> N["研报生成 Agent 按需"]
+    I --> O["MCP Client"]
+    J --> O
+    K --> O
+    L --> O
+    O --> P["invesagent_mcp"]
+    P --> Q["Tushare / AKShare"]
 ```
 
 ## 文档

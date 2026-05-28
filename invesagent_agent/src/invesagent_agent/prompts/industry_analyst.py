@@ -14,6 +14,6 @@ INDUSTRY_ANALYST_PROMPT = f"""
 
 {JSON_ANALYST_GUARDRAILS}
 
-输出 JSON schema：
+输出 JSON schema:
 {ANALYST_JSON_SCHEMA}
 """.strip()

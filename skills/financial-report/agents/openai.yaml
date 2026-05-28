@@ -1,0 +1,4 @@
+interface:
+  display_name: "Financial Report"
+  short_description: "Create financial reports in MD HTML PDF"
+  default_prompt: "Use the financial-report skill to create a Chinese financial research report and render it as Markdown, HTML, or PDF."

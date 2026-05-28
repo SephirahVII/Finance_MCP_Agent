@@ -1,210 +1,286 @@
 from __future__ import annotations
 
+from typing import Any
+
 from invesagent_agent.agents.base import run_llm_text_node
+from invesagent_agent.prompts.company_research_report import COMPANY_RESEARCH_REPORT_PROMPT
 from invesagent_agent.prompts.report_writer import REPORT_WRITER_PROMPT
+from invesagent_agent.reports import FinancialReportSkill
 from invesagent_agent.workflows.research_state import ResearchState
 
 
-def _format_metric(value, suffix: str = "") -> str:
-    if value is None:
-        return "N/A"
-    if isinstance(value, float):
-        return f"{value:.2f}{suffix}"
-    return f"{value}{suffix}"
+def _first_symbol(state: ResearchState) -> str | None:
+    symbols = state.get("symbols", [])
+    return symbols[0] if symbols else None
 
 
-def _format_amount(value) -> str:
-    if value is None:
-        return "N/A"
-    try:
-        number = float(value)
-    except (TypeError, ValueError):
-        return str(value)
-    if abs(number) >= 100_000_000:
-        return f"{number / 100_000_000:.2f} 亿元"
-    if abs(number) >= 10_000:
-        return f"{number / 10_000:.2f} 万元"
-    return f"{number:.2f} 元"
+def _instrument_name(state: ResearchState, symbol: str | None) -> str | None:
+    for item in state.get("data_package", {}).get("instruments", []):
+        if item.get("symbol") == symbol:
+            return item.get("name") or item.get("symbol")
+    return symbol
 
 
-def _price_section(state: ResearchState) -> list[str]:
-    lines = ["## 量价分析"]
-    price = state.get("price_volume_analysis", {})
-    raw = price.get("raw", price)
-    analysis = price.get("analysis", {})
-    single = raw.get("single_instrument", {})
-
-    if analysis:
-        lines.append(f"- 分析摘要: {analysis.get('summary', 'N/A')}")
-        for finding in analysis.get("key_findings", [])[:5]:
-            lines.append(f"- {finding}")
-
-    if not single:
-        return lines + ["暂无可用量价分析结果。"]
-
-    for symbol, result in single.items():
-        metrics = result.get("metrics") or {}
-        lines.append(
-            (
-                f"- {symbol}: 区间收益率 {_format_metric(metrics.get('return_pct'), '%')}，"
-                f"年化波动率 {_format_metric(metrics.get('annual_volatility_pct'), '%')}，"
-                f"最大回撤 {_format_metric(metrics.get('max_drawdown_pct'), '%')}，"
-                f"最新收盘价 {_format_metric(metrics.get('latest_close'))}。"
-            )
-        )
-
-    comparison = raw.get("peer_comparison")
-    if comparison and comparison.get("success"):
-        rankings = comparison.get("rankings", {})
-        lines.append(f"- 横向收益率排序: {', '.join(rankings.get('by_return', [])) or 'N/A'}")
-        lines.append(f"- 横向低回撤排序: {', '.join(rankings.get('by_low_drawdown', [])) or 'N/A'}")
-
-    return lines
+def _symbol_price_result(state: ResearchState, symbol: str | None) -> dict[str, Any]:
+    if not symbol:
+        return {}
+    raw = state.get("price_volume_analysis", {}).get("raw", {})
+    return raw.get("single_instrument", {}).get(symbol, {})
 
 
-def _fundamental_section(state: ResearchState) -> list[str]:
-    lines = ["## 基本面分析"]
-    fundamental_package = state.get("fundamental_analysis", {})
-    fundamentals = fundamental_package.get("raw", fundamental_package)
-    analysis = fundamental_package.get("analysis", {})
-
-    if analysis:
-        lines.append(f"- 分析摘要: {analysis.get('summary', 'N/A')}")
-        for finding in analysis.get("key_findings", [])[:5]:
-            lines.append(f"- {finding}")
-
-    if not fundamentals:
-        return lines + ["暂无可用基本面分析结果。"]
-
-    for symbol, result in fundamentals.items():
-        metrics = result.get("metrics") or {}
-        if not result.get("success"):
-            lines.append(f"- {symbol}: 基本面数据不可用，原因：{result.get('error_type') or result.get('message')}")
-            continue
-        lines.append(
-            (
-                f"- {symbol}: 最新营业收入 {_format_amount(metrics.get('latest_revenue'))}，"
-                f"最新净利润 {_format_amount(metrics.get('latest_net_profit'))}，"
-                f"经营现金流 {_format_amount(metrics.get('latest_operating_cashflow'))}，"
-                f"ROE {_format_metric(metrics.get('latest_roe'), '%')}，"
-                f"毛利率 {_format_metric(metrics.get('latest_gross_margin'), '%')}，"
-                f"资产负债率 {_format_metric(metrics.get('debt_to_assets_pct'), '%')}。"
-            )
-        )
-
-    return lines
+def _symbol_fundamental_result(state: ResearchState, symbol: str | None) -> dict[str, Any]:
+    if not symbol:
+        return {}
+    raw = state.get("fundamental_analysis", {}).get("raw", {})
+    return raw.get(symbol, {})
 
 
-def _industry_section(state: ResearchState) -> list[str]:
-    lines = ["## 行业研究"]
-    industry = state.get("industry_analysis", {})
-
-    if industry.get("skipped"):
-        return lines + ["本次任务未识别到明确行业，跳过行业研究模块。"]
-
-    raw = industry.get("raw", industry)
-    analysis = industry.get("analysis", {})
-    if analysis:
-        lines.append(f"- 分析摘要: {analysis.get('summary', 'N/A')}")
-        for finding in analysis.get("key_findings", [])[:5]:
-            lines.append(f"- {finding}")
-
-    members = raw.get("members") or {}
-    lines.append(f"- 行业: {raw.get('industry') or 'N/A'}")
-    lines.append(f"- 行业股票池样本数量: {members.get('count') or len(members.get('members', []))}")
-
-    sample = members.get("members", [])[:8]
-    if sample:
-        names = [f"{item.get('name')}({item.get('symbol')})" for item in sample]
-        lines.append(f"- 样本公司: {', '.join(names)}")
-
-    dynamics = raw.get("policy_and_dynamics", {})
-    if dynamics:
-        lines.append(f"- 政策与产业动态: {dynamics.get('message')}")
-
-    return lines
+def _symbol_valuation_result(state: ResearchState, symbol: str | None) -> dict[str, Any]:
+    if not symbol:
+        return {}
+    raw = state.get("valuation_analysis", {}).get("raw", {})
+    return raw.get(symbol, {})
 
 
-def _chart_section(state: ResearchState) -> list[str]:
-    lines = ["## 图表"]
+def _symbol_charts(state: ResearchState, symbol: str | None) -> list[dict[str, Any]]:
     charts = state.get("charts", [])
-    if not charts:
-        return lines + ["暂无图表产物。"]
-
-    for chart in charts:
-        if chart.get("success"):
-            lines.append(f"- {chart.get('symbol')}: {chart.get('relative_path') or chart.get('path')}")
-        else:
-            lines.append(f"- 图表生成失败: {chart.get('error_type') or chart.get('message')}")
-
-    return lines
+    if not symbol:
+        return charts
+    return [chart for chart in charts if chart.get("symbol") == symbol]
 
 
-def _fallback_report(state: ResearchState, warnings: list[str]) -> str:
-    plan = state.get("task_plan", {})
+def _extract_price_metrics(price_result: dict[str, Any]) -> dict[str, Any]:
+    metrics = price_result.get("metrics") or {}
+    return {
+        "latest_close": metrics.get("latest_close"),
+        "first_close": metrics.get("first_close"),
+        "return_pct": metrics.get("return_pct"),
+        "annual_volatility_pct": metrics.get("annual_volatility_pct"),
+        "max_drawdown_pct": metrics.get("max_drawdown_pct"),
+        "highest_price": metrics.get("highest_price") or metrics.get("period_high"),
+        "lowest_price": metrics.get("lowest_price") or metrics.get("period_low"),
+        "ma5": metrics.get("ma5"),
+        "ma20": metrics.get("ma20"),
+        "ma60": metrics.get("ma60"),
+        "avg_amount": metrics.get("avg_amount"),
+        "record_count": price_result.get("count") or metrics.get("record_count"),
+        "data_start": price_result.get("start_date"),
+        "data_end": price_result.get("end_date"),
+    }
+
+
+def _extract_market_snapshot(state: ResearchState, symbol: str | None) -> dict[str, Any]:
+    price_result = _symbol_price_result(state, symbol)
+    valuation_result = _symbol_valuation_result(state, symbol)
+    price_metrics = _extract_price_metrics(price_result)
+    valuation_metrics = valuation_result.get("metrics") or {}
+
+    snapshot = {
+        "report_date": state.get("end_date"),
+        "current_price": price_metrics.get("latest_close") or valuation_metrics.get("latest_close"),
+        "one_year_high": price_metrics.get("highest_price"),
+        "one_year_low": price_metrics.get("lowest_price"),
+        "market_cap": valuation_metrics.get("latest_total_mv"),
+        "float_market_cap": valuation_metrics.get("latest_circ_mv"),
+        "total_shares": valuation_metrics.get("latest_total_share"),
+        "float_shares": valuation_metrics.get("latest_float_share"),
+        "latest_turnover_rate": valuation_metrics.get("latest_turnover_rate"),
+        "three_month_turnover_rate": valuation_metrics.get("three_month_avg_turnover_rate"),
+        "pe_ttm": valuation_metrics.get("latest_pe_ttm"),
+        "pb": valuation_metrics.get("latest_pb"),
+        "ps_ttm": valuation_metrics.get("latest_ps_ttm"),
+        "data_limits": [],
+    }
+
+    if snapshot["current_price"] is None:
+        snapshot["data_limits"].append("价格和估值数据中均未提供当前价格或最新收盘价。")
+    if snapshot["one_year_high"] is None or snapshot["one_year_low"] is None:
+        snapshot["data_limits"].append("价格指标中未提供区间最高价或最低价。")
+    if valuation_result.get("success") is False:
+        snapshot["data_limits"].append(
+            "估值数据不可用："
+            f"{valuation_result.get('error_type') or 'unknown'} - {valuation_result.get('message') or '无详细消息'}"
+        )
+    elif not valuation_result:
+        snapshot["data_limits"].append("估值数据未被请求或未返回。")
+    return snapshot
+
+
+def _build_company_report_context(state: ResearchState) -> dict[str, Any]:
+    symbol = _first_symbol(state)
+    price_package = state.get("price_volume_analysis", {})
+    valuation_package = state.get("valuation_analysis", {})
+    fundamental_package = state.get("fundamental_analysis", {})
+    industry_package = state.get("industry_analysis", {})
+    price_result = _symbol_price_result(state, symbol)
+
+    return {
+        "report_type": _report_type(state, "company_research_report"),
+        "user_query": state.get("user_query", ""),
+        "task_plan": state.get("task_plan", {}),
+        "report_review": state.get("report_review", {}),
+        "company": {
+            "name": _instrument_name(state, symbol),
+            "symbol": symbol,
+            "market": state.get("market", "cn"),
+            "asset_type": state.get("asset_type", "stock"),
+            "industry": state.get("industry"),
+        },
+        "scope": {
+            "start_date": state.get("start_date"),
+            "end_date": state.get("end_date"),
+            "user_date_range": state.get("user_date_range", {}),
+            "date_ranges": state.get("date_ranges", {}),
+            "modules_executed": state.get("required_agents", []),
+        },
+        "market_snapshot": _extract_market_snapshot(state, symbol),
+        "price_volume": {
+            "metrics": _extract_price_metrics(price_result),
+            "raw_result": price_result,
+            "analysis": price_package.get("analysis", {}),
+            "data_limits": price_package.get("analysis", {}).get("data_limits", []),
+        },
+        "valuation": {
+            "raw_result": _symbol_valuation_result(state, symbol),
+            "analysis": valuation_package.get("analysis", {}),
+            "data_limits": valuation_package.get("analysis", {}).get("data_limits", []),
+        },
+        "fundamentals": {
+            "raw_result": _symbol_fundamental_result(state, symbol),
+            "analysis": fundamental_package.get("analysis", {}),
+            "data_limits": fundamental_package.get("analysis", {}).get("data_limits", []),
+        },
+        "industry_background": {
+            "raw_result": industry_package.get("raw", industry_package),
+            "analysis": industry_package.get("analysis", {}),
+            "data_limits": industry_package.get("analysis", {}).get("data_limits", []),
+        },
+        "charts": _symbol_charts(state, symbol),
+        "warnings": list(state.get("warnings", [])),
+        "data_sources": ["InvesAgent MCP 工具", "MCP 结果中注明的 Tushare / AKShare 数据"],
+    }
+
+
+def _build_generic_report_context(state: ResearchState, warnings: list[str]) -> dict[str, Any]:
+    return {
+        "report_type": _report_type(state, "generic_report"),
+        "user_query": state.get("user_query", ""),
+        "task_plan": state.get("task_plan", {}),
+        "user_date_range": state.get("user_date_range", {}),
+        "date_ranges": state.get("date_ranges", {}),
+        "report_review": state.get("report_review", {}),
+        "industry_analysis": state.get("industry_analysis", {}),
+        "price_volume_analysis": state.get("price_volume_analysis", {}),
+        "valuation_analysis": state.get("valuation_analysis", {}),
+        "fundamental_analysis": state.get("fundamental_analysis", {}),
+        "charts": state.get("charts", []),
+        "reflection": state.get("reflection", {}),
+        "warnings": warnings,
+    }
+
+
+def _should_use_company_report(state: ResearchState) -> bool:
+    symbols = state.get("symbols", [])
+    report_type = state.get("report_review", {}).get("report_type")
+    if len(symbols) != 1:
+        return False
+    return report_type in {"stock_trend_report", "company_research_report"} or state.get("task_plan", {}).get(
+        "task_type"
+    ) in {"company_research", "full_report", "fundamental_analysis", "price_query"}
+
+
+def _report_type(state: ResearchState, fallback: str = "generic_report") -> str:
+    review_type = state.get("report_review", {}).get("report_type")
+    plan_type = state.get("task_plan", {}).get("report_type")
+    report_type = review_type or plan_type or fallback
+    return "generic_report" if report_type in {None, "", "none", "analysis_summary"} else str(report_type)
+
+
+def _fallback_report(context: dict[str, Any]) -> str:
+    review = context.get("report_review", {})
+    company = context.get("company", {})
+    snapshot = context.get("market_snapshot", {})
+    price = context.get("price_volume", {})
+    metrics = price.get("metrics", {})
+    charts = context.get("charts", [])
+    title = company.get("name") or company.get("symbol") or "研究对象"
+
     lines = [
-        "# 金融研究报告",
+        f"# {title} ({company.get('symbol') or 'N/A'})",
         "",
-        "## 任务摘要",
-        f"- 用户问题: {state.get('user_query', '')}",
-        f"- 任务类型: {plan.get('task_type', 'N/A')}",
-        f"- 分析区间: {state.get('start_date', 'N/A')} 至 {state.get('end_date', 'N/A')}",
-        f"- 标的: {', '.join(state.get('symbols', [])) or 'N/A'}",
-        f"- 行业: {state.get('industry') or 'N/A'}",
+        f"- 报告类型：{context.get('report_type')}",
+        f"- 数据区间：{context.get('scope', {}).get('start_date')} 至 {context.get('scope', {}).get('end_date')}",
+        "",
+        "## 关键市场数据",
+        f"- 当前价格/最新收盘价：{snapshot.get('current_price')}",
+        f"- 区间最高/最低：{snapshot.get('one_year_high')} / {snapshot.get('one_year_low')}",
+        f"- 总市值/流通市值：{snapshot.get('market_cap')} / {snapshot.get('float_market_cap')}",
+        f"- PE TTM / PB / PS TTM：{snapshot.get('pe_ttm')} / {snapshot.get('pb')} / {snapshot.get('ps_ttm')}",
+        f"- 最新换手率/三个月平均换手率：{snapshot.get('latest_turnover_rate')} / {snapshot.get('three_month_turnover_rate')}",
+        "",
+        "## 股价表现与量价特征",
+        f"- 区间收益率：{metrics.get('return_pct')}",
+        f"- 年化波动率：{metrics.get('annual_volatility_pct')}",
+        f"- 最大回撤：{metrics.get('max_drawdown_pct')}",
+        f"- 摘要：{price.get('analysis', {}).get('summary')}",
         "",
     ]
-
-    for section in [
-        _industry_section(state),
-        _price_section(state),
-        _fundamental_section(state),
-        _chart_section(state),
-    ]:
-        lines.extend(section)
+    if context.get("report_type") == "company_research_report":
+        lines.extend(
+            [
+                "## 财务与基本面",
+                f"- {context.get('fundamentals', {}).get('analysis', {}).get('summary', '不可用')}",
+                "",
+                "## 公司与行业背景",
+                f"- {context.get('industry_background', {}).get('analysis', {}).get('summary', '不可用')}",
+                "",
+            ]
+        )
+    if charts:
+        lines.append("## 图表")
+        for chart in charts:
+            lines.append(f"- {chart.get('relative_path') or chart.get('path')}")
         lines.append("")
 
-    reflection = state.get("reflection", {})
-    if reflection:
-        lines.append("## 审查意见")
-        lines.append(f"- 状态: {reflection.get('status', 'N/A')}")
-        lines.append(f"- 摘要: {reflection.get('summary', 'N/A')}")
-        for issue in reflection.get("issues", [])[:10]:
-            lines.append(f"- {issue}")
-        lines.append("")
-
-    lines.append("## 数据限制与风险提示")
-    if warnings:
-        for warning in warnings[:20]:
-            lines.append(f"- {warning}")
-    else:
-        lines.append("- 未发现工具层返回的显著数据警告。")
-    lines.append("- 本报告仅用于数据分析和研究学习，不构成投资建议。")
-
+    limits = [
+        *snapshot.get("data_limits", []),
+        *review.get("missing_required_requirements", []),
+        *review.get("failed_data", []),
+    ]
+    if limits:
+        lines.append("## 数据限制与风险提示")
+        for item in limits[:20]:
+            lines.append(f"- {item}")
+    lines.append("\n本报告仅用于研究和数据分析，不构成任何投资建议。")
     return "\n".join(lines)
 
 
 def run_report_writer(state: ResearchState) -> ResearchState:
     """Generate a Markdown research report from prior agent outputs."""
     warnings = list(state.get("warnings", []))
-    fallback = _fallback_report(state, warnings)
+    report_type = _report_type(state)
+    skill = FinancialReportSkill()
+    if _should_use_company_report(state):
+        report_context = _build_company_report_context(state)
+    else:
+        report_context = _build_generic_report_context(state, warnings)
+    try:
+        prompt = skill.load_prompt(report_type)
+    except (FileNotFoundError, OSError):
+        prompt = COMPANY_RESEARCH_REPORT_PROMPT if _should_use_company_report(state) else REPORT_WRITER_PROMPT
+
+    fallback = _fallback_report(report_context)
     final_report = run_llm_text_node(
-        system_prompt=REPORT_WRITER_PROMPT,
-        context={
-            "user_query": state.get("user_query", ""),
-            "task_plan": state.get("task_plan", {}),
-            "industry_analysis": state.get("industry_analysis", {}),
-            "price_volume_analysis": state.get("price_volume_analysis", {}),
-            "fundamental_analysis": state.get("fundamental_analysis", {}),
-            "charts": state.get("charts", []),
-            "reflection": state.get("reflection", {}),
-            "warnings": warnings,
-        },
+        system_prompt=prompt,
+        context={"report_context": report_context},
         fallback=fallback,
         warnings=warnings,
     )
     return {
         **state,
+        "report_context": report_context,
         "draft_report": fallback,
         "final_report": final_report,
+        "final_response": final_report,
         "warnings": warnings,
     }

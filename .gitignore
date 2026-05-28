@@ -22,20 +22,31 @@ htmlcov/
 .venv/
 venv/
 env/
+.env/
+.conda/
 .uv-cache/
+uv-cache/
+.codex-uv-cache/
+codex-uv-cache/
 pip-wheel-metadata/
+uv.lock
 
 # Local IDE state
 .vscode/
 .idea/
 
 # Runtime artifacts
+/\.runtime/
 /data_cache/
 /charts/
 /reports/
+/tmp/
+/.invesagent_chat_history.json
+**/.runtime/
 **/data_cache/
 **/charts/
-**/reports/
+**/tmp/
+**/.invesagent_chat_history.json
 *.log
 *.sqlite
 *.sqlite3
@@ -47,7 +58,6 @@ docs/project_workflow.md
 
 # Generated notebooks / scratch files
 scratch/
-tmp/
 
 # OS files
 .DS_Store

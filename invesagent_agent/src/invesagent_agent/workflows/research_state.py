@@ -19,16 +19,29 @@ class ResearchState(TypedDict, total=False):
     asset_type: str
     start_date: str
     end_date: str
+    user_date_range: dict[str, Any]
+    date_ranges: dict[str, dict[str, str]]
     provider: str
     industry_member_limit: int
+    messages: list[dict[str, str]]
+    task_memory: dict[str, Any]
+    tool_client: Any
+    required_agents: list[str]
 
     data_package: dict[str, Any]
     price_volume_analysis: dict[str, Any]
     fundamental_analysis: dict[str, Any]
     industry_analysis: dict[str, Any]
+    valuation_analysis: dict[str, Any]
+    report_review: dict[str, Any]
+    review_round: int
 
     charts: list[dict[str, Any]]
+    report_context: dict[str, Any]
     draft_report: str
     review_comments: list[str]
+    final_response: str
     final_report: str
+    trace: list[dict[str, Any]]
+    run_report: dict[str, Any]
     warnings: list[str]

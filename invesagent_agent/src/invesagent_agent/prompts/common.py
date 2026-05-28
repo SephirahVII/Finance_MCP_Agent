@@ -2,12 +2,12 @@ from __future__ import annotations
 
 
 JSON_ANALYST_GUARDRAILS = """
-通用约束：
-1. 只能基于输入中的工具结果和上下文分析，不得编造事实、行情、财务数据、政策或新闻。
-2. 如果数据不足、工具失败或字段缺失，必须写入 data_limits。
+要求：
+1. 只基于输入上下文和工具返回结果分析，不得编造数据、公司事实或行业事件。
+2. 工具返回为空、权限不足、网络错误或样本不足时，必须在 data_limits 中说明。
 3. 不得给出买入、卖出、持有等直接投资建议。
-4. reasoning_summary 只写可展示的简要分析依据，不输出隐藏推理链。
-5. 输出必须是一个合法 JSON object，不要使用 Markdown。
+4. 区分数据事实、解释性判断和风险提示。
+5. 输出必须是合法 JSON object，不要使用 Markdown。
 """.strip()
 
 

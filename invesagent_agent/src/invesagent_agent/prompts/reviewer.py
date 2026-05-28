@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
 REVIEWER_PROMPT = """
@@ -11,7 +11,9 @@ REVIEWER_PROMPT = """
 4. 是否出现买入、卖出、持有等直接投资建议。
 5. 是否需要补充数据后再写最终报告。
 
-输出必须是合法 JSON object，不要使用 Markdown。schema：
+输出必须是合法 JSON object，不要使用 Markdown。
+
+schema:
 {
   "status": "ok|needs_revision|needs_more_data",
   "summary": "string",

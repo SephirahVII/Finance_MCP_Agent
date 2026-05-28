@@ -27,7 +27,7 @@ invesagent_mcp/src/
     tools/
 ```
 
-`invesagent_agent` 是 LangGraph 研究工作流：
+`invesagent_agent` 是 LangGraph Agent 工作流：
 
 ```text
 invesagent_agent/src/invesagent_agent/
@@ -37,7 +37,6 @@ invesagent_agent/src/invesagent_agent/
   schemas/
   workflows/
   runners/
-  mcp_agent.py
 ```
 
 ## 迁移关系
@@ -50,8 +49,30 @@ invesagent_agent/src/invesagent_agent/
 | `src/storage/` | `invesagent_mcp/src/invesagent_core/storage/` |
 | `src/utils/` | `invesagent_mcp/src/invesagent_core/utils/` |
 | `src/mcp_server/` | `invesagent_mcp/src/invesagent_mcp/` |
-| `src/agents/` | `invesagent_agent/src/invesagent_agent/agents/` |
+| `src/agent/` | `invesagent_agent/src/invesagent_agent/` |
 | `src/workflows/` | `invesagent_agent/src/invesagent_agent/workflows/` |
+
+## Agent 侧入口变化
+
+旧版曾经存在独立的单 Agent 入口和外层 Router 文件。现在已合并为：
+
+```text
+General Assistant Agent
+  -> 普通回答
+  -> Investment Task Manager Agent
+      -> 按需分派专业 Agent
+```
+
+当前 Agent 侧核心文件：
+
+```text
+invesagent_agent/src/invesagent_agent/agents/general_assistant.py
+invesagent_agent/src/invesagent_agent/agents/investment_task_manager.py
+invesagent_agent/src/invesagent_agent/workflows/chat_graph.py
+invesagent_agent/src/invesagent_agent/workflows/research_graph.py
+```
+
+旧的 `intent_router.py`、`casual_chat.py`、`task_planner.py`、`mcp_agent.py` 已移除。
 
 ## 当前 MCP 工具
 
@@ -77,16 +98,17 @@ get_industry_members_tool
 
 ## 当前边界
 
-迁移后，MCP 已经是独立子项目：
+迁移后，MCP 是独立子项目：
 
 ```text
 MCP Client -> invesagent_mcp -> invesagent_core -> providers
 ```
 
-LangGraph Agent 也通过 MCP Client 调用 MCP Server：
+LangGraph Agent 通过 MCP Client 调用 MCP Server：
 
 ```text
 invesagent_agent -> MCP Client -> invesagent_mcp -> invesagent_core
 ```
 
-因此 Agent 侧不再直接导入 `invesagent_core`，后续前端或其他客户端也可以只接入 MCP Server 或 Agent API。
+因此 Agent 侧不再直接导入 `invesagent_core`。后续前端、Cherry Studio、VS Code 或其他客户端也可以只接入 MCP Server，或者接入 Agent API。
+

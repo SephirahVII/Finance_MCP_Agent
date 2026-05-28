@@ -1,6 +1,6 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
-from invesagent_agent.clients.mcp_client import call_mcp_tool
+from invesagent_agent.agents.base import run_mcp_tool_node
 from invesagent_agent.workflows.research_state import ResearchState
 
 
@@ -17,49 +17,41 @@ def run_data_collector(state: ResearchState) -> ResearchState:
     instruments = []
     for symbol in symbols:
         try:
-            call = {
-                "node": "data_collector",
-                "tool": "resolve_instrument_tool",
-                "arguments": {"query": symbol, "market": market, "provider": provider},
-            }
-            tool_calls.append(call)
             instruments.append(
-                call_mcp_tool(
-                    call["tool"],
-                    call["arguments"],
+                run_mcp_tool_node(
+                    node="data_collector",
+                    tool="resolve_instrument_tool",
+                    arguments={"query": symbol, "market": market, "provider": provider},
+                    tool_calls=tool_calls,
+                    observations=observations,
+                    warnings=warnings,
+                    observation={"symbol": symbol},
+                    state=state,
                 )
             )
-            observations.append({"node": "data_collector", "tool": call["tool"], "symbol": symbol})
         except Exception as exc:
             warnings.append(f"resolve_instrument failed for {symbol}: {exc}")
 
     industry_members = None
     if industry:
         try:
-            call = {
-                "node": "data_collector",
-                "tool": "get_industry_members_tool",
-                "arguments": {
+            industry_members = run_mcp_tool_node(
+                node="data_collector",
+                tool="get_industry_members_tool",
+                arguments={
                     "industry": industry,
                     "market": market,
                     "provider": provider,
                     "limit": state.get("industry_member_limit", 10),
                 },
-            }
-            tool_calls.append(call)
-            industry_members = call_mcp_tool(
-                call["tool"],
-                call["arguments"],
+                tool_calls=tool_calls,
+                observations=observations,
+                warnings=warnings,
+                observation={"industry": industry},
+                state=state,
             )
-            observations.append(
-                {
-                    "node": "data_collector",
-                    "tool": call["tool"],
-                    "industry": industry,
-                    "success": industry_members.get("success"),
-                    "count": industry_members.get("count"),
-                }
-            )
+            if observations:
+                observations[-1]["count"] = industry_members.get("count")
 
             if not symbols and industry_members.get("success"):
                 symbols = [
