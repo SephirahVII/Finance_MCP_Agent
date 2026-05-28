@@ -63,5 +63,38 @@ class AgentMemory:
         }
 
 
+@dataclass
+class MemoryManager:
+    """Read and write memory scopes from a workflow state object."""
+
+    state: dict[str, Any]
+
+    @property
+    def session(self) -> AgentMemory:
+        return AgentMemory.from_value(self.state.get("task_memory", {}))
+
+    def for_agent(self, agent_name: str) -> dict[str, Any]:
+        memory = self.session.to_dict()
+        agent_memory = dict(memory.get("agent_memory", {}).get(agent_name, {}))
+        return {
+            "session": self.session.for_prompt(),
+            "task": {
+                "task_plan": self.state.get("task_plan", {}),
+                "required_agents": self.state.get("required_agents", []),
+                "symbols": self.state.get("symbols", []),
+                "industry": self.state.get("industry"),
+                "date_ranges": self.state.get("date_ranges", {}),
+            },
+            "agent": agent_memory,
+        }
+
+    def update_session(self, **updates: Any) -> dict[str, Any]:
+        memory = self.session.to_dict()
+        memory.update({key: value for key, value in updates.items() if value is not None})
+        self.state["task_memory"] = memory
+        return memory
+
+
 def normalize_agent_memory(value: Any) -> dict[str, Any]:
     return AgentMemory.from_value(value).to_dict()
+

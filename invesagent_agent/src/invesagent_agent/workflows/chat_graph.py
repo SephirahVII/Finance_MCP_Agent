@@ -5,8 +5,8 @@ import re
 from langgraph.graph import END, StateGraph
 
 from invesagent_agent.agents.general_assistant import run_general_assistant
-from invesagent_agent.memory import AgentMemory
-from invesagent_agent.runtime_trace import append_trace, build_run_report
+from invesagent_agent.runtime.memory import AgentMemory
+from invesagent_agent.runtime.trace import append_trace, build_run_report
 from invesagent_agent.workflows.chat_state import ChatState
 from invesagent_agent.workflows.research_graph import run_research_workflow
 

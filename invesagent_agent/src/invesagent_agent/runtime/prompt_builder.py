@@ -4,7 +4,7 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
-from invesagent_agent.memory import AgentMemory
+from invesagent_agent.runtime.memory import AgentMemory
 
 
 def compact_json(value: Any, max_chars: int = 12000) -> str:
@@ -31,7 +31,10 @@ class PromptBuilder:
         memory: dict[str, Any] | AgentMemory | None = None,
         output_contract: str | None = None,
     ) -> list[dict[str, str]]:
-        memory_value = AgentMemory.from_value(memory).for_prompt() if memory is not None else {}
+        if isinstance(memory, dict) and any(key in memory for key in ("session", "task", "agent")):
+            memory_value = memory
+        else:
+            memory_value = AgentMemory.from_value(memory).for_prompt() if memory is not None else {}
         envelope = {
             "agent_role": role,
             "task": task,
@@ -47,3 +50,4 @@ class PromptBuilder:
 
 
 DEFAULT_PROMPT_BUILDER = PromptBuilder()
+

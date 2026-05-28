@@ -38,3 +38,4 @@ def build_run_report(state: dict[str, Any]) -> dict[str, Any]:
         "trace": state.get("trace", []),
         "final_response": state.get("final_response") or state.get("final_report"),
     }
+

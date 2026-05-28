@@ -13,8 +13,8 @@ from invesagent_agent.agents.price_volume_analyst import run_price_volume_analys
 from invesagent_agent.agents.report_writer import run_report_writer
 from invesagent_agent.agents.reviewer import run_reviewer
 from invesagent_agent.agents.valuation_analyst import run_valuation_analyst
-from invesagent_agent.memory import AgentMemory
-from invesagent_agent.runtime_trace import append_trace, build_run_report
+from invesagent_agent.runtime.memory import AgentMemory
+from invesagent_agent.runtime.trace import append_trace, build_run_report
 from invesagent_agent.workflows.research_state import ResearchState
 
 
