@@ -3,13 +3,13 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from invesagent_agent.agents.base import run_llm_json_node, run_llm_text_node
 from invesagent_agent.prompts.general_assistant import GENERAL_ASSISTANT_PROMPT
+from invesagent_agent.runtime.agent_runtime import AgentRuntime
 from invesagent_agent.workflows.chat_state import ChatState
 
 
 _TS_CODE_RE = re.compile(r"\b\d{6}\.(?:SH|SZ|BJ)\b", re.IGNORECASE)
-_DATE_RE = re.compile(r"\d{4}[-/]?\d{2}[-/]?\d{2}|近[一二三四五六七八九十\d]+年|过去[一二三四五六七八九十\d]+年")
+_DATE_RE = re.compile(r"\d{4}[-/]?\d{2}[-/]?\d{2}|最近[一二三四五六七八九十\d]+年|过去[一二三四五六七八九十\d]+年")
 _INVESTMENT_TERMS = {
     "股票",
     "公司",
@@ -133,10 +133,10 @@ def _heuristic_route(query: str) -> dict[str, Any]:
 
 def run_general_assistant(state: ChatState) -> ChatState:
     """Route and answer general turns before any investment workflow is started."""
+    runtime = AgentRuntime(state, "general_assistant")
     query = state.get("user_query", "")
-    warnings = list(state.get("warnings", []))
     fallback = _heuristic_route(query)
-    decision = run_llm_json_node(
+    decision = runtime.call_llm_json(
         system_prompt=GENERAL_ASSISTANT_PROMPT,
         context={
             "latest_user_input": query,
@@ -144,8 +144,7 @@ def run_general_assistant(state: ChatState) -> ChatState:
             "heuristic_route": fallback,
         },
         fallback=fallback,
-        user_prompt="请只根据 latest_user_input 判断本轮是否进入投资研究系统。",
-        warnings=warnings,
+        task="请只根据 latest_user_input 判断本轮是否进入投资研究系统。",
     )
 
     route = decision.get("route") or fallback["route"]
@@ -153,19 +152,19 @@ def run_general_assistant(state: ChatState) -> ChatState:
         route = fallback["route"]
 
     if route == "investment_task":
-        return {
-            **state,
-            "general_decision": decision,
-            "conversation_route": "investment_task",
-            "warnings": warnings,
-        }
+        return runtime.finish(
+            {
+                "general_decision": decision,
+                "conversation_route": "investment_task",
+            }
+        )
 
     response = decision.get("response")
     if not response:
-        response = run_llm_text_node(
+        response = runtime.call_llm_text(
             system_prompt=(
                 "你是 InvesAgent 的 General Assistant。请用中文自然回答。"
-                "如果是金融概念解释，要清楚、简洁、不要调用或编造实时数据。"
+                "如果是金融概念解释，要清楚、简洁，不要调用或编造实时数据。"
             ),
             context={
                 "latest_user_input": query,
@@ -173,13 +172,12 @@ def run_general_assistant(state: ChatState) -> ChatState:
                 "recent_messages": state.get("messages", [])[-6:],
             },
             fallback="我理解了。这个问题不需要调用金融数据工具，我可以直接和你讨论。",
-            warnings=warnings,
         )
 
-    return {
-        **state,
-        "general_decision": decision,
-        "conversation_route": "general_answer",
-        "final_response": response,
-        "warnings": warnings,
-    }
+    return runtime.finish(
+        {
+            "general_decision": decision,
+            "conversation_route": "general_answer",
+            "final_response": response,
+        }
+    )

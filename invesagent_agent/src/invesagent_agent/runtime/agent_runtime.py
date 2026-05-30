@@ -172,7 +172,7 @@ class AgentRuntime:
             return fallback
 
     def finish(self, updates: dict[str, Any]) -> dict[str, Any]:
-        return {
+        final_state = {
             **self.state,
             **updates,
             "warnings": self.state.get("warnings", []),
@@ -180,3 +180,7 @@ class AgentRuntime:
             "tool_calls": self.state.get("tool_calls", []),
             "observations": self.state.get("observations", []),
         }
+        final_state["task_memory"] = MemoryManager(final_state).capture_agent_output(
+            self.agent_name, final_state
+        )
+        return final_state

@@ -4,9 +4,9 @@ import re
 from datetime import date, timedelta
 from typing import Any
 
-from invesagent_agent.agents.base import run_llm_json_node
 from invesagent_agent.clients.tool_client import get_tool_client
 from invesagent_agent.prompts.investment_task_manager import INVESTMENT_TASK_MANAGER_PROMPT
+from invesagent_agent.runtime.agent_runtime import AgentRuntime
 from invesagent_agent.workflows.research_state import ResearchState
 
 
@@ -313,10 +313,11 @@ def _normalize_report_type(value: Any, output_type: str | None) -> str:
 
 def run_investment_task_manager(state: ResearchState) -> ResearchState:
     """Plan investment research tasks and decide which specialist agents should run."""
+    runtime = AgentRuntime(state, "investment_task_manager")
     warnings = list(state.get("warnings", []))
     fallback = _heuristic_plan(state)
     explicit_user_range = _user_date_range(state.get("user_query", ""))
-    llm_plan = run_llm_json_node(
+    llm_plan = runtime.call_llm_json(
         system_prompt=INVESTMENT_TASK_MANAGER_PROMPT,
         context={
             "latest_user_input": state.get("user_query", ""),
@@ -341,12 +342,11 @@ def run_investment_task_manager(state: ResearchState) -> ResearchState:
             "provider": state.get("provider", "auto"),
         },
         fallback=fallback,
-        user_prompt=(
+        task=(
             "请生成投资研究任务计划。不要做指标计算，只做任务理解、信息完整性判断、"
             "时间口径确认和 Agent 分派。若用户只是询问股价走势、股票趋势、价格表现，"
             "请优先选择 analysis_summary，并自行判断是否真的需要 report_writer。"
         ),
-        warnings=warnings,
     )
 
     plan = {**fallback, **{key: value for key, value in llm_plan.items() if value is not None}}
@@ -402,8 +402,7 @@ def run_investment_task_manager(state: ResearchState) -> ResearchState:
     elif action == "clarification":
         final_response = plan.get("clarifying_question") or "请补充研究对象、时间范围和分析重点。"
 
-    return {
-        **state,
+    return runtime.finish({
         "task_plan": plan,
         "symbols": symbols,
         "industry": industry,
@@ -426,8 +425,7 @@ def run_investment_task_manager(state: ResearchState) -> ResearchState:
                 "reason": plan.get("reason"),
             },
         },
-        "warnings": warnings,
-    }
+    })
 
 
 def _has_successful_package(state: ResearchState, key: str) -> bool:
@@ -444,6 +442,7 @@ def _has_successful_package(state: ResearchState, key: str) -> bool:
 
 def run_investment_task_reviewer(state: ResearchState) -> ResearchState:
     """Review collected data before report writing and decide whether to retry modules."""
+    runtime = AgentRuntime(state, "investment_task_reviewer")
     plan = state.get("task_plan", {})
     query = state.get("user_query", "")
     required_agents = list(state.get("required_agents", []))
@@ -552,11 +551,10 @@ def run_investment_task_reviewer(state: ResearchState) -> ResearchState:
         "final_output_mode": "report" if wants_report or report_type != "analysis_summary" else "summary",
     }
 
-    return {
-        **state,
+    state["warnings"] = warnings
+    return runtime.finish({
         "required_agents": required_agents,
         "date_ranges": date_ranges,
         "report_review": report_review,
         "review_round": review_round + 1,
-        "warnings": warnings,
-    }
+    })

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from types import SimpleNamespace
-
 import pytest
 
 from invesagent_agent.agents.data_collector import run_data_collector
@@ -49,11 +47,13 @@ def mock_tool_client():
 
 @pytest.fixture(autouse=True)
 def mock_llm(monkeypatch):
-    import invesagent_agent.agents.base as base
+    from invesagent_agent.runtime.agent_runtime import AgentRuntime
 
-    def fake_json(messages, temperature=0.1):
-        del messages, temperature
+    def fake_json(self, *, system_prompt, context, fallback, task=""):
+        del self, system_prompt, context, fallback, task
         return {
+            "route": "general_answer",
+            "action": "execute",
             "summary": "mock summary",
             "key_findings": ["mock finding"],
             "risks": [],
@@ -62,12 +62,12 @@ def mock_llm(monkeypatch):
             "reasoning_summary": ["mock reasoning"],
         }
 
-    def fake_text(messages, temperature=0.2):
-        del messages, temperature
-        return SimpleNamespace(content="mock text response")
+    def fake_text(self, *, system_prompt, context, fallback, task=""):
+        del self, system_prompt, context, fallback, task
+        return "mock text response"
 
-    monkeypatch.setattr(base, "generate_json", fake_json)
-    monkeypatch.setattr(base, "generate_text", fake_text)
+    monkeypatch.setattr(AgentRuntime, "call_llm_json", fake_json)
+    monkeypatch.setattr(AgentRuntime, "call_llm_text", fake_text)
 
 
 def base_state(mock_tool_client):

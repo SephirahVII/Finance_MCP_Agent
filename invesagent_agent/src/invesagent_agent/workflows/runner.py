@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from invesagent_agent.outputs import export_report
+from invesagent_agent.runtime.memory import MemoryManager
 from invesagent_agent.workflows.chat_graph import run_chat_workflow
 
 
@@ -27,7 +28,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--history-file",
         default=None,
-        help="Optional JSON file used to load and append multi-turn chat history.",
+        help="Optional JSON file used to load and append multi-turn chat history. Overrides --session-id.",
+    )
+    parser.add_argument(
+        "--session-id",
+        default=None,
+        help=(
+            "Session id saved under .runtime/sessions/<session-id>.json when --history-file is omitted. "
+            "For --chat, omitting this creates a new timestamped session."
+        ),
     )
     parser.add_argument("--show-intent", action="store_true", help="Print routing and task planning details.")
     parser.add_argument("--show-state", action="store_true", help="Print final state keys after the response.")
@@ -53,6 +62,80 @@ def parse_args() -> argparse.Namespace:
         help="Start an interactive chat session. Type exit, quit, or q to end.",
     )
     return parser.parse_args()
+
+
+def _safe_session_id(value: str | None) -> str:
+    text = (value or "default").strip() or "default"
+    safe = "".join(char if char.isalnum() or char in {"-", "_"} else "_" for char in text)
+    return safe or "default"
+
+
+def _default_session_path(session_id: str | None) -> Path:
+    return Path(".runtime") / "sessions" / f"{_safe_session_id(session_id)}.json"
+
+
+def _new_session_id() -> str:
+    return datetime.now().strftime("%Y%m%d_%H%M%S")
+
+
+def _long_term_memory_path() -> Path:
+    return Path(os.getenv("LONG_TERM_MEMORY_FILE", ".runtime/memory/MEMORY.md"))
+
+
+def _ensure_long_term_memory_file(path: Path) -> None:
+    if path.exists():
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "\n".join(
+            [
+                "# InvesAgent Long-Term Memory",
+                "",
+                "## User Preferences",
+                "- preferred_market: cn",
+                "- preferred_language: zh-CN",
+                "- prefers_explicit_time_scope: true",
+                "",
+                "## Watchlist",
+                "",
+                "## Report Preferences",
+                "- Reports should explicitly state data time scope.",
+                "- Charts should be placed near the relevant section when possible.",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+
+def _load_long_term_memory() -> str:
+    path = _long_term_memory_path()
+    _ensure_long_term_memory_file(path)
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
+def _attach_long_term_memory(task_memory: dict) -> dict:
+    state = {"task_memory": task_memory if isinstance(task_memory, dict) else {}}
+    memory = MemoryManager(state)
+    memory.update_long_term(_load_long_term_memory())
+    return state["task_memory"]
+
+
+def _resolve_history_file(args: argparse.Namespace) -> str:
+    if args.history_file:
+        return args.history_file
+    return str(_default_session_path(args.session_id))
+
+
+def _resolve_session_id(args: argparse.Namespace) -> str:
+    if args.session_id:
+        return _safe_session_id(args.session_id)
+    if args.chat:
+        return _new_session_id()
+    return "default"
 
 
 def _text_width(text: str) -> int:
@@ -181,16 +264,16 @@ def _render_banner(args: argparse.Namespace, mode: str) -> None:
 
 def _load_session(path: str | None, query: str) -> tuple[list[dict[str, str]], dict]:
     if not path:
-        return ([{"role": "user", "content": query}] if query else []), {}
+        return ([{"role": "user", "content": query}] if query else []), _attach_long_term_memory({})
 
     history_path = Path(path)
     if not history_path.exists():
-        return ([{"role": "user", "content": query}] if query else []), {}
+        return ([{"role": "user", "content": query}] if query else []), _attach_long_term_memory({})
 
     try:
         value = json.loads(history_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
-        return ([{"role": "user", "content": query}] if query else []), {}
+        return ([{"role": "user", "content": query}] if query else []), _attach_long_term_memory({})
 
     messages = value if isinstance(value, list) else value.get("messages", [])
     task_memory = {} if isinstance(value, list) else value.get("task_memory", {})
@@ -208,20 +291,27 @@ def _load_session(path: str | None, query: str) -> tuple[list[dict[str, str]], d
         cleaned = [*cleaned[-20:], {"role": "user", "content": query}]
     else:
         cleaned = cleaned[-20:]
-    return cleaned, task_memory
+    return cleaned, _attach_long_term_memory(task_memory)
 
 
-def _save_session(path: str | None, messages: list[dict[str, str]], task_memory: dict) -> None:
+def _save_session(
+    path: str | None,
+    messages: list[dict[str, str]],
+    task_memory: dict,
+    session_id: str | None = None,
+) -> None:
     if not path:
         return
 
     history_path = Path(path)
     history_path.parent.mkdir(parents=True, exist_ok=True)
+    memory = MemoryManager({"task_memory": task_memory if isinstance(task_memory, dict) else {}}).root()
     history_path.write_text(
         json.dumps(
             {
+                "session_id": session_id or history_path.stem,
                 "messages": messages[-40:],
-                "task_memory": task_memory,
+                "task_memory": memory,
             },
             ensure_ascii=False,
             indent=2,
@@ -396,7 +486,7 @@ def _run_interactive_chat(args: argparse.Namespace) -> None:
             messages=messages,
             task_memory=task_memory,
         )
-        _save_session(args.history_file, messages, task_memory)
+        _save_session(args.history_file, messages, task_memory, session_id=args.session_id)
 
 
 def main() -> None:
@@ -404,6 +494,8 @@ def main() -> None:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
     args = parse_args()
+    args.session_id = _resolve_session_id(args)
+    args.history_file = _resolve_history_file(args)
     if args.chat:
         _run_interactive_chat(args)
         return
@@ -421,7 +513,7 @@ def main() -> None:
         messages=messages,
         task_memory=task_memory,
     )
-    _save_session(args.history_file, updated_messages, updated_memory)
+    _save_session(args.history_file, updated_messages, updated_memory, session_id=args.session_id)
 
 
 if __name__ == "__main__":

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from invesagent_agent.agents.base import run_llm_text_node
 from invesagent_agent.prompts.company_research_report import COMPANY_RESEARCH_REPORT_PROMPT
 from invesagent_agent.prompts.report_writer import REPORT_WRITER_PROMPT
 from invesagent_agent.reports import FinancialReportSkill
+from invesagent_agent.runtime.agent_runtime import AgentRuntime
 from invesagent_agent.workflows.research_state import ResearchState
 
 
@@ -257,6 +257,7 @@ def _fallback_report(context: dict[str, Any]) -> str:
 
 def run_report_writer(state: ResearchState) -> ResearchState:
     """Generate a Markdown research report from prior agent outputs."""
+    runtime = AgentRuntime(state, "report_writer")
     warnings = list(state.get("warnings", []))
     report_type = _report_type(state)
     skill = FinancialReportSkill()
@@ -270,17 +271,16 @@ def run_report_writer(state: ResearchState) -> ResearchState:
         prompt = COMPANY_RESEARCH_REPORT_PROMPT if _should_use_company_report(state) else REPORT_WRITER_PROMPT
 
     fallback = _fallback_report(report_context)
-    final_report = run_llm_text_node(
+    final_report = runtime.call_llm_text(
         system_prompt=prompt,
         context={"report_context": report_context},
         fallback=fallback,
-        warnings=warnings,
     )
-    return {
-        **state,
-        "report_context": report_context,
-        "draft_report": fallback,
-        "final_report": final_report,
-        "final_response": final_report,
-        "warnings": warnings,
-    }
+    return runtime.finish(
+        {
+            "report_context": report_context,
+            "draft_report": fallback,
+            "final_report": final_report,
+            "final_response": final_report,
+        }
+    )

@@ -5,7 +5,7 @@ import re
 from langgraph.graph import END, StateGraph
 
 from invesagent_agent.agents.general_assistant import run_general_assistant
-from invesagent_agent.runtime.memory import AgentMemory
+from invesagent_agent.runtime.memory import AgentMemory, MemoryManager
 from invesagent_agent.runtime.trace import append_trace, build_run_report
 from invesagent_agent.workflows.chat_state import ChatState
 from invesagent_agent.workflows.research_graph import run_research_workflow
@@ -86,6 +86,7 @@ def run_research_subgraph(state: ChatState) -> ChatState:
     """Run the research graph only after the router approves tool use."""
     normalized_query = state.get("general_decision", {}).get("normalized_query") or state.get("user_query", "")
     memory = AgentMemory.from_value(state.get("task_memory", {}))
+    memory_root = MemoryManager({"task_memory": state.get("task_memory", {})}).root()
     research_state = run_research_workflow(
         user_query=normalized_query,
         market=state.get("market", "cn"),
@@ -93,29 +94,27 @@ def run_research_subgraph(state: ChatState) -> ChatState:
         provider=state.get("provider", "auto"),
         industry_member_limit=state.get("industry_member_limit", 10),
         messages=state.get("messages", []),
-        task_memory=memory.to_dict(),
+        task_memory=memory_root,
         tool_client=state.get("tool_client"),
     )
-    updated_memory = AgentMemory.from_value(
-        {
-            **memory.to_dict(),
-            "last_query": normalized_query,
-            "last_task_plan": research_state.get("task_plan", {}),
-            "last_required_agents": research_state.get("required_agents", []),
-            "last_symbols": research_state.get("symbols", []),
-            "last_industry": research_state.get("industry"),
-            "last_date_range": {
-                "start_date": research_state.get("start_date"),
-                "end_date": research_state.get("end_date"),
-                "date_ranges": research_state.get("date_ranges", {}),
-            },
-            "last_warnings": research_state.get("warnings", [])[-10:],
-            "last_outputs": {
-                "final_response": research_state.get("final_response"),
-                "final_report": research_state.get("final_report"),
-            },
-        }
-    ).to_dict()
+    memory_state = {"task_memory": research_state.get("task_memory", memory.to_dict())}
+    updated_memory = MemoryManager(memory_state).update_session(
+        last_query=normalized_query,
+        last_task_plan=research_state.get("task_plan", {}),
+        last_required_agents=research_state.get("required_agents", []),
+        last_symbols=research_state.get("symbols", []),
+        last_industry=research_state.get("industry"),
+        last_date_range={
+            "start_date": research_state.get("start_date"),
+            "end_date": research_state.get("end_date"),
+            "date_ranges": research_state.get("date_ranges", {}),
+        },
+        last_warnings=research_state.get("warnings", [])[-10:],
+        last_outputs={
+            "final_response": research_state.get("final_response"),
+            "has_final_report": bool(research_state.get("final_report")),
+        },
+    )
     final_state: ChatState = {
         **state,
         "research_state": dict(research_state),
@@ -169,7 +168,7 @@ def run_chat_workflow(
     """Run the chat router, which calls the research graph only when needed."""
     workflow = build_chat_graph()
     message_history = messages or [{"role": "user", "content": user_query}]
-    memory = AgentMemory.from_value(task_memory).to_dict()
+    memory = MemoryManager({"task_memory": task_memory or {}}).root()
     contextual_query = _build_contextual_query(user_query, message_history, memory)
     initial_state: ChatState = {
         "user_query": contextual_query,

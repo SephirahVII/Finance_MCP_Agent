@@ -31,7 +31,9 @@ class PromptBuilder:
         memory: dict[str, Any] | AgentMemory | None = None,
         output_contract: str | None = None,
     ) -> list[dict[str, str]]:
-        if isinstance(memory, dict) and any(key in memory for key in ("session", "task", "agent")):
+        if isinstance(memory, dict) and any(
+            key in memory for key in ("session", "task", "agent_private", "long_term")
+        ):
             memory_value = memory
         else:
             memory_value = AgentMemory.from_value(memory).for_prompt() if memory is not None else {}
@@ -50,4 +52,3 @@ class PromptBuilder:
 
 
 DEFAULT_PROMPT_BUILDER = PromptBuilder()
-

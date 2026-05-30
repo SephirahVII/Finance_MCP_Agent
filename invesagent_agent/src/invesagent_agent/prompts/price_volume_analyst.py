@@ -16,6 +16,12 @@ PRICE_VOLUME_ANALYST_PROMPT = f"""
 
 {JSON_ANALYST_GUARDRAILS}
 
+时间范围字段：
+- context.requested_date_range 是用户或任务要求的分析区间。
+- context.actual_data_range 是数据工具实际返回的首个和最后一个交易日。
+- context.trading_days 是实际返回的交易日数量。
+- 如果 requested_date_range 与 actual_data_range 不一致，必须在 data_limits 中明确说明差异，并基于 actual_data_range 得出结论。
+
 输出 JSON schema:
 {ANALYST_JSON_SCHEMA}
 """.strip()

@@ -13,7 +13,7 @@ from invesagent_agent.agents.price_volume_analyst import run_price_volume_analys
 from invesagent_agent.agents.report_writer import run_report_writer
 from invesagent_agent.agents.reviewer import run_reviewer
 from invesagent_agent.agents.valuation_analyst import run_valuation_analyst
-from invesagent_agent.runtime.memory import AgentMemory
+from invesagent_agent.runtime.memory import MemoryManager
 from invesagent_agent.runtime.trace import append_trace, build_run_report
 from invesagent_agent.workflows.research_state import ResearchState
 
@@ -217,7 +217,7 @@ def run_research_workflow(
         "provider": provider,
         "industry_member_limit": industry_member_limit,
         "messages": messages or [{"role": "user", "content": user_query}],
-        "task_memory": AgentMemory.from_value(task_memory).to_dict(),
+        "task_memory": MemoryManager({"task_memory": task_memory or {}}).root(),
         "tool_client": tool_client,
         "tool_calls": [],
         "observations": [],

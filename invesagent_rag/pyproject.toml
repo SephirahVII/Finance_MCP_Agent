@@ -1,0 +1,34 @@
+[project]
+name = "invesagent-rag"
+version = "0.1.0"
+description = "Milvus-backed RAG library for InvesAgent text corpora."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pymilvus>=2.4.0",
+    "python-dotenv>=1.0.1",
+    "sentencepiece>=0.2.0",
+    "tiktoken>=0.7.0",
+    "torch>=2.2.0",
+    "transformers>=4.45.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.5.0",
+]
+
+[project.scripts]
+invesagent-rag = "invesagent_rag.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

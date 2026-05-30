@@ -28,6 +28,8 @@ env/
 uv-cache/
 .codex-uv-cache/
 codex-uv-cache/
+.codex-uv-cache-local/
+codex-uv-cache-local/
 pip-wheel-metadata/
 uv.lock
 
@@ -37,6 +39,7 @@ uv.lock
 
 # Runtime artifacts
 /\.runtime/
+/invesagent_rag/data/
 /data_cache/
 /charts/
 /reports/
@@ -44,7 +47,6 @@ uv.lock
 /.invesagent_chat_history.json
 **/.runtime/
 **/data_cache/
-**/charts/
 **/tmp/
 **/.invesagent_chat_history.json
 *.log

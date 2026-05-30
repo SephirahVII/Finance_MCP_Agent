@@ -1,20 +1,49 @@
 from __future__ import annotations
 
-from invesagent_agent.agents import base as agent_base
 from invesagent_agent.agents.base import default_analysis, get_module_date_range
 from invesagent_agent.prompts.price_volume_analyst import PRICE_VOLUME_ANALYST_PROMPT
 from invesagent_agent.runtime.agent_runtime import AgentRuntime
 from invesagent_agent.workflows.research_state import ResearchState
 
 
+def _extract_price_result_coverage(result: dict) -> dict:
+    metrics = result.get("metrics") if isinstance(result.get("metrics"), dict) else {}
+    return {
+        "start_date": metrics.get("first_trade_time"),
+        "end_date": metrics.get("latest_trade_time"),
+        "trading_days": result.get("trading_days", 0),
+    }
+
+
+def _combine_price_coverages(analyses: dict) -> dict:
+    by_symbol = {}
+    for symbol, result in analyses.items():
+        if not isinstance(result, dict) or not result.get("success"):
+            continue
+        coverage = _extract_price_result_coverage(result)
+        if coverage.get("start_date") or coverage.get("end_date"):
+            by_symbol[symbol] = coverage
+
+    starts = [item["start_date"] for item in by_symbol.values() if item.get("start_date")]
+    ends = [item["end_date"] for item in by_symbol.values() if item.get("end_date")]
+    trading_days_by_symbol = {
+        symbol: item.get("trading_days", 0) for symbol, item in by_symbol.items()
+    }
+
+    return {
+        "actual_data_range": {
+            "start_date": min(starts) if starts else None,
+            "end_date": max(ends) if ends else None,
+        },
+        "trading_days": max(trading_days_by_symbol.values()) if trading_days_by_symbol else 0,
+        "trading_days_by_symbol": trading_days_by_symbol,
+        "actual_data_range_by_symbol": by_symbol,
+    }
+
+
 def run_price_volume_analyst(state: ResearchState) -> ResearchState:
     """Run price-volume analysis, then ask the LLM to interpret tool results."""
-    runtime = AgentRuntime(
-        state,
-        "price_volume_analyst",
-        generate_json_fn=agent_base.generate_json,
-        generate_text_fn=agent_base.generate_text,
-    )
+    runtime = AgentRuntime(state, "price_volume_analyst")
     symbols = state.get("symbols", [])
     market = state.get("market", "cn")
     asset_type = state.get("asset_type", "stock")
@@ -32,6 +61,11 @@ def run_price_volume_analyst(state: ResearchState) -> ResearchState:
                 "price_volume_analysis": {
                     "raw": {},
                     "date_range": date_range,
+                    "requested_date_range": date_range,
+                    "actual_data_range": {"start_date": None, "end_date": None},
+                    "actual_data_range_by_symbol": {},
+                    "trading_days": 0,
+                    "trading_days_by_symbol": {},
                     "analysis": default_analysis(
                         summary=message,
                         data_limits=["缺少 start_date 或 end_date，未调用量价 MCP 工具。"],
@@ -108,11 +142,19 @@ def run_price_volume_analyst(state: ResearchState) -> ResearchState:
         "peer_comparison": peer_comparison,
         "charts": charts,
     }
+    coverage = _combine_price_coverages(analyses)
+    requested_date_range = date_range
+    actual_data_range = coverage["actual_data_range"]
+    trading_days = coverage["trading_days"]
     analysis = runtime.call_llm_json(
         system_prompt=PRICE_VOLUME_ANALYST_PROMPT,
         context=runtime.context(
             {
                 "date_range": date_range,
+                "requested_date_range": requested_date_range,
+                "actual_data_range": actual_data_range,
+                "trading_days": trading_days,
+                "trading_days_by_symbol": coverage["trading_days_by_symbol"],
                 "raw": raw,
             }
         ),
@@ -136,6 +178,11 @@ def run_price_volume_analyst(state: ResearchState) -> ResearchState:
             "price_volume_analysis": {
                 "raw": raw,
                 "date_range": date_range,
+                "requested_date_range": requested_date_range,
+                "actual_data_range": actual_data_range,
+                "actual_data_range_by_symbol": coverage["actual_data_range_by_symbol"],
+                "trading_days": trading_days,
+                "trading_days_by_symbol": coverage["trading_days_by_symbol"],
                 "analysis": analysis,
             },
             "charts": charts,
