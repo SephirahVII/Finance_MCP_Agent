@@ -39,6 +39,7 @@ class ContextBuilder:
                 {
                     "observations": self.state.get("observations", []),
                     "analyst_notes": self.state.get("analyst_notes", {}),
+                    "macro_policy_analysis": self.state.get("macro_policy_analysis", {}),
                     "price_volume_analysis": self.state.get("price_volume_analysis", {}),
                     "fundamental_analysis": self.state.get("fundamental_analysis", {}),
                     "industry_analysis": self.state.get("industry_analysis", {}),
@@ -49,6 +50,7 @@ class ContextBuilder:
             context.update(
                 {
                     "analyst_notes": self.state.get("analyst_notes", {}),
+                    "macro_policy_analysis": self.state.get("macro_policy_analysis", {}),
                     "price_volume_analysis": self.state.get("price_volume_analysis", {}),
                     "fundamental_analysis": self.state.get("fundamental_analysis", {}),
                     "industry_analysis": self.state.get("industry_analysis", {}),
@@ -59,4 +61,3 @@ class ContextBuilder:
         if extra:
             context.update(extra)
         return context
-

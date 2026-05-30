@@ -14,7 +14,9 @@ COMPANY_RESEARCH_REPORT_PROMPT = """
    - company_research_report：在数据可用时包含市场快照、股价趋势、估值、基本面、公司/行业背景、图表和数据限制。
    - industry_research_report：重点写行业样本和同行比较。
 6. 必需但失败的数据，必须在“数据限制与风险提示”中说明，并引用 report_context.report_review.failed_data 或工具消息中的失败原因。
-7. 只输出 Markdown 正文，不要输出额外解释。
+7. 不要大段粘贴 raw_result 或工具 JSON；优先提炼关键字段、指标变化、图表路径和限制说明。
+8. 图表章节只引用 report_context.charts 中存在的路径，并说明该图表辅助观察的内容；不要把图表当作额外数据源。
+9. 只输出 Markdown 正文，不要输出额外解释。
 
 建议使用的中文章节名：
 - 核心结论

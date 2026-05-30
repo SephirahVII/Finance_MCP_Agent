@@ -9,6 +9,7 @@ from invesagent_agent.agents.investment_task_manager import (
     run_investment_task_manager,
     run_investment_task_reviewer,
 )
+from invesagent_agent.agents.macro_policy_analyst import run_macro_policy_analyst
 from invesagent_agent.agents.price_volume_analyst import run_price_volume_analyst
 from invesagent_agent.agents.report_writer import run_report_writer
 from invesagent_agent.agents.reviewer import run_reviewer
@@ -20,6 +21,7 @@ from invesagent_agent.workflows.research_state import ResearchState
 
 AGENT_ORDER = (
     "data_collector",
+    "macro_policy_analyst",
     "industry_analyst",
     "price_volume_analyst",
     "valuation_analyst",
@@ -28,6 +30,7 @@ AGENT_ORDER = (
 )
 MODULE_TO_AGENT = {
     "data": "data_collector",
+    "macro_policy": "macro_policy_analyst",
     "industry": "industry_analyst",
     "price_volume": "price_volume_analyst",
     "valuation": "valuation_analyst",
@@ -82,6 +85,10 @@ def _route_after_data_collector(state: ResearchState) -> str:
     return _next_agent_after(state, "data_collector")
 
 
+def _route_after_macro_policy(state: ResearchState) -> str:
+    return _next_agent_after(state, "macro_policy_analyst")
+
+
 def _route_after_industry(state: ResearchState) -> str:
     return _next_agent_after(state, "industry_analyst")
 
@@ -108,6 +115,7 @@ def _route_after_task_reviewer(state: ResearchState) -> str:
         "price_volume_analyst",
         "valuation_analyst",
         "fundamental_analyst",
+        "macro_policy_analyst",
         "industry_analyst",
     ):
         if agent in retry_agents:
@@ -123,6 +131,7 @@ def build_research_graph():
 
     graph.add_node("investment_task_manager", run_investment_task_manager)
     graph.add_node("data_collector", run_data_collector)
+    graph.add_node("macro_policy_analyst", run_macro_policy_analyst)
     graph.add_node("price_volume_analyst", run_price_volume_analyst)
     graph.add_node("valuation_analyst", run_valuation_analyst)
     graph.add_node("fundamental_analyst", run_fundamental_analyst)
@@ -134,6 +143,7 @@ def build_research_graph():
     graph.set_entry_point("investment_task_manager")
     route_targets = {
         "data_collector": "data_collector",
+        "macro_policy_analyst": "macro_policy_analyst",
         "industry_analyst": "industry_analyst",
         "price_volume_analyst": "price_volume_analyst",
         "valuation_analyst": "valuation_analyst",
@@ -145,6 +155,7 @@ def build_research_graph():
     }
     graph.add_conditional_edges("investment_task_manager", _route_after_manager, route_targets)
     graph.add_conditional_edges("data_collector", _route_after_data_collector, route_targets)
+    graph.add_conditional_edges("macro_policy_analyst", _route_after_macro_policy, route_targets)
     graph.add_conditional_edges("industry_analyst", _route_after_industry, route_targets)
     graph.add_conditional_edges(
         "price_volume_analyst",
@@ -189,6 +200,7 @@ def build_research_graph():
             "valuation_analyst": "valuation_analyst",
             "fundamental_analyst": "fundamental_analyst",
             "industry_analyst": "industry_analyst",
+            "macro_policy_analyst": "macro_policy_analyst",
             "report_writer": "report_writer",
             "end": END,
         },

@@ -32,6 +32,7 @@ class ResearchState(TypedDict, total=False):
     price_volume_analysis: dict[str, Any]
     fundamental_analysis: dict[str, Any]
     industry_analysis: dict[str, Any]
+    macro_policy_analysis: dict[str, Any]
     valuation_analysis: dict[str, Any]
     report_review: dict[str, Any]
     review_round: int

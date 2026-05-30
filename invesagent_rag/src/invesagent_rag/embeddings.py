@@ -47,6 +47,9 @@ class LocalTransformerEmbedder:
     batch_size: int = 4
 
     def __post_init__(self) -> None:
+        if self.local_files_only:
+            os.environ.setdefault("HF_HUB_OFFLINE", "1")
+            os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
         try:
             import torch
             from transformers import AutoModel, AutoTokenizer
@@ -65,6 +68,7 @@ class LocalTransformerEmbedder:
             self.model,
             trust_remote_code=True,
             local_files_only=self.local_files_only,
+            use_safetensors=False,
         ).to(self.device_name)
         self.encoder.eval()
 

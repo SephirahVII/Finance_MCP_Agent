@@ -67,7 +67,7 @@ class RagConfig:
     embedding_model: str = os.getenv("RAG_EMBEDDING_MODEL", "BAAI/bge-m3")
     embedding_dim: int = _get_int_env("RAG_EMBEDDING_DIM", _default_embedding_dim())
     embedding_device: str | None = os.getenv("RAG_EMBEDDING_DEVICE") or None
-    embedding_local_files_only: bool = _get_bool_env("RAG_EMBEDDING_LOCAL_FILES_ONLY", False)
+    embedding_local_files_only: bool = _get_bool_env("RAG_EMBEDDING_LOCAL_FILES_ONLY", True)
     embedding_batch_size: int = _get_int_env("RAG_EMBEDDING_BATCH_SIZE", 4)
     chunk_size: int = _get_int_env("RAG_CHUNK_SIZE", 900)
     chunk_overlap: int = _get_int_env("RAG_CHUNK_OVERLAP", 120)

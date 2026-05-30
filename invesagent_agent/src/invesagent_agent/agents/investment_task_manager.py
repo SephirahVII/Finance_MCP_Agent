@@ -18,7 +18,23 @@ _FUNDAMENTAL_TERMS = {"基本面", "财务", "利润", "营收", "现金流", "R
 _VALUATION_TERMS = {"估值", "市值", "换手率", "PE", "PB", "PS", "股本", "流通市值"}
 _INDUSTRY_TERMS = {"行业", "产业", "股票池", "成分股", "同行", "可比公司"}
 _REPORT_TERMS = {"报告", "研报", "完整分析", "完整研究"}
-_DATE_MODULES = ("price_volume", "valuation", "fundamentals", "industry")
+_MACRO_POLICY_TERMS = {
+    "macro",
+    "policy",
+    "liquidity",
+    "inflation",
+    "pmi",
+    "宏观",
+    "政策",
+    "财政",
+    "货币",
+    "流动性",
+    "利率",
+    "通胀",
+    "稳增长",
+    "扩内需",
+}
+_DATE_MODULES = ("price_volume", "valuation", "fundamentals", "industry", "macro_policy")
 _REPORT_TYPES = {
     "none",
     "stock_trend_report",
@@ -83,6 +99,10 @@ def _default_date_ranges(
     ranges = {
         "price_volume": {
             "start_date": _format_date(today - timedelta(days=90)),
+            "end_date": _format_date(today),
+        },
+        "macro_policy": {
+            "start_date": f"{today.year - 5}0101",
             "end_date": _format_date(today),
         },
         "valuation": {
@@ -152,12 +172,52 @@ def _heuristic_plan(state: ResearchState) -> dict[str, Any]:
     symbols = _extract_symbols(query)
     tool_client = state.get("tool_client")
     industry = _extract_industry(query, market, provider, tool_client=tool_client)
+    start_date = user_date_range.get("start_date")
+    end_date = user_date_range.get("end_date")
+
+    if not symbols and not industry and _contains_any(query, _MACRO_POLICY_TERMS):
+        wants_report = _contains_any(query, _REPORT_TERMS)
+        required_agents = ["macro_policy_analyst"]
+        if wants_report:
+            required_agents.extend(["reviewer", "report_writer"])
+        return {
+            "action": "execute",
+            "task_type": "macro_research",
+            "target": {
+                "symbols": [],
+                "names": [],
+                "industry": None,
+                "market": market,
+                "asset_type": asset_type,
+            },
+            "start_date": start_date,
+            "end_date": end_date,
+            "user_date_range": user_date_range,
+            "date_ranges": _default_date_ranges(required_agents, start_date, end_date),
+            "required_agents": required_agents,
+            "modules": _modules_from_agents(required_agents),
+            "agent_tasks": {
+                "macro_policy_analyst": "使用 RagRetriever 检索并分析宏观/政策证据。",
+                "report_writer": "基于检索证据生成宏观/政策研究报告。",
+            },
+            "tool_needs": {"macro_policy_analyst": ["RagRetriever.retrieve_policy"]},
+            "needs_tool": True,
+            "needs_clarification": False,
+            "missing_fields": [],
+            "clarifying_question": None,
+            "direct_answer": None,
+            "output_type": "full_report" if wants_report else "analysis_summary",
+            "report_type": "macro_research_report" if wants_report else "none",
+            "report_requirements": {
+                "language": "zh-CN",
+                "style": "专业、克制、证据可追溯",
+                "length": "根据任务复杂度决定",
+            },
+            "reason": "识别到宏观/政策问题，交给基于 RagRetriever 的宏观政策分析 Agent。",
+        }
 
     if not symbols and query:
         symbols = _try_resolve_symbol(query, tool_client=tool_client)
-
-    start_date = user_date_range.get("start_date")
-    end_date = user_date_range.get("end_date")
 
     if not symbols and not industry:
         return {
@@ -227,6 +287,7 @@ def _heuristic_plan(state: ResearchState) -> dict[str, Any]:
 def _normalize_required_agents(value: Any) -> list[str]:
     allowed = {
         "data_collector",
+        "macro_policy_analyst",
         "industry_analyst",
         "price_volume_analyst",
         "valuation_analyst",
@@ -242,6 +303,7 @@ def _normalize_required_agents(value: Any) -> list[str]:
 def _modules_from_agents(required_agents: list[str]) -> dict[str, bool]:
     return {
         "data": "data_collector" in required_agents,
+        "macro_policy": "macro_policy_analyst" in required_agents,
         "industry": "industry_analyst" in required_agents,
         "price_volume": "price_volume_analyst" in required_agents,
         "valuation": "valuation_analyst" in required_agents,
@@ -254,6 +316,7 @@ def _modules_from_agents(required_agents: list[str]) -> dict[str, bool]:
 def _agents_from_modules(modules: Any) -> list[str]:
     module_to_agent = {
         "data": "data_collector",
+        "macro_policy": "macro_policy_analyst",
         "industry": "industry_analyst",
         "price_volume": "price_volume_analyst",
         "valuation": "valuation_analyst",
@@ -314,7 +377,6 @@ def _normalize_report_type(value: Any, output_type: str | None) -> str:
 def run_investment_task_manager(state: ResearchState) -> ResearchState:
     """Plan investment research tasks and decide which specialist agents should run."""
     runtime = AgentRuntime(state, "investment_task_manager")
-    warnings = list(state.get("warnings", []))
     fallback = _heuristic_plan(state)
     explicit_user_range = _user_date_range(state.get("user_query", ""))
     llm_plan = runtime.call_llm_json(
@@ -449,6 +511,7 @@ def run_investment_task_reviewer(state: ResearchState) -> ResearchState:
     review_round = int(state.get("review_round", 0) or 0)
     warnings = list(state.get("warnings", []))
 
+    planned_report_type = plan.get("report_type")
     wants_report = _contains_any(query, _REPORT_TERMS) or "report_writer" in required_agents
     wants_price = _contains_any(query, _PRICE_TERMS) or plan.get("task_type") in {
         "price_query",
@@ -457,12 +520,19 @@ def run_investment_task_reviewer(state: ResearchState) -> ResearchState:
     wants_fundamental = _contains_any(query, _FUNDAMENTAL_TERMS)
     wants_valuation = _contains_any(query, _VALUATION_TERMS) or wants_report
     wants_industry = _contains_any(query, _INDUSTRY_TERMS) or bool(state.get("industry"))
+    wants_macro_policy = (
+        _contains_any(query, _MACRO_POLICY_TERMS)
+        or plan.get("task_type") == "macro_research"
+        or planned_report_type == "macro_research_report"
+        or "macro_policy_analyst" in required_agents
+    )
 
-    planned_report_type = plan.get("report_type")
     if planned_report_type in _REPORT_TYPES and planned_report_type != "none":
         report_type = planned_report_type
     elif wants_report and wants_price and not (wants_fundamental or wants_industry):
         report_type = "stock_trend_report"
+    elif wants_macro_policy:
+        report_type = "macro_research_report" if wants_report else "analysis_summary"
     elif wants_industry and not state.get("symbols"):
         report_type = "industry_research_report"
     elif wants_report:
@@ -471,16 +541,19 @@ def run_investment_task_reviewer(state: ResearchState) -> ResearchState:
         report_type = "analysis_summary"
 
     requirements = {
-        "price_volume": wants_price or wants_report,
-        "valuation": wants_valuation,
-        "fundamentals": wants_fundamental or report_type == "company_research_report",
-        "industry": wants_industry,
+        "price_volume": (wants_price or wants_report) and not wants_macro_policy,
+        "valuation": wants_valuation and not wants_macro_policy,
+        "fundamentals": (wants_fundamental or report_type == "company_research_report")
+        and not wants_macro_policy,
+        "industry": wants_industry and not wants_macro_policy,
+        "macro_policy": wants_macro_policy,
     }
     available = {
         "price_volume": _has_successful_package(state, "price_volume_analysis"),
         "valuation": _has_successful_package(state, "valuation_analysis"),
         "fundamentals": _has_successful_package(state, "fundamental_analysis"),
         "industry": bool(state.get("industry_analysis")),
+        "macro_policy": bool(state.get("macro_policy_analysis", {}).get("raw", {}).get("hits")),
     }
 
     module_to_agent = {
@@ -488,6 +561,7 @@ def run_investment_task_reviewer(state: ResearchState) -> ResearchState:
         "valuation": "valuation_analyst",
         "fundamentals": "fundamental_analyst",
         "industry": "industry_analyst",
+        "macro_policy": "macro_policy_analyst",
     }
     retry_agents = []
     missing_required = []

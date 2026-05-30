@@ -102,8 +102,9 @@ class RagRetriever:
         if end_year is not None:
             filters.append(f"year <= {int(end_year)}")
         filter_expr = " and ".join(filters) if filters else None
+        store = self.store
         query_embedding = self.embedder.embed_query(query)
-        dense_hits = self.store.search(
+        dense_hits = store.search(
             query_embedding,
             top_k=top_k if mode == "dense" else top_k * 4,
             filter_expr=filter_expr,

@@ -11,6 +11,7 @@ from invesagent_agent.agents.investment_task_manager import (
     run_investment_task_manager,
     run_investment_task_reviewer,
 )
+from invesagent_agent.agents.macro_policy_analyst import run_macro_policy_analyst
 from invesagent_agent.agents.price_volume_analyst import run_price_volume_analyst
 from invesagent_agent.agents.report_writer import run_report_writer
 from invesagent_agent.agents.reviewer import run_reviewer
@@ -144,6 +145,60 @@ def test_industry_analyst_records_analysis(mock_tool_client):
     result = run_industry_analyst(base_state(mock_tool_client))
     assert "industry_analysis" in result
     assert result["observations"]
+
+
+def test_investment_task_manager_routes_macro_policy(mock_tool_client, monkeypatch):
+    monkeypatch.setattr(
+        "invesagent_agent.agents.investment_task_manager._try_resolve_symbol",
+        lambda query, tool_client=None: [],
+    )
+    state = base_state(mock_tool_client)
+    state["user_query"] = "\u8d22\u653f\u653f\u7b56\u5bf9\u6269\u5185\u9700\u7684\u5f71\u54cd"
+    state["symbols"] = []
+    state["industry"] = None
+    state["task_plan"] = {}
+    result = run_investment_task_manager(state)
+    assert "macro_policy_analyst" in result["required_agents"]
+    assert result["task_plan"]["modules"]["macro_policy"] is True
+
+
+def test_macro_policy_analyst_records_rag_evidence(mock_tool_client, monkeypatch):
+    class Hit:
+        chunk_id = "chunk-1"
+        doc_id = "doc-1"
+        text = "policy evidence"
+        score = 0.9
+        title = "Policy Doc"
+        source_type = "macro_policy"
+        source_name = "source"
+        jurisdiction_level = "central"
+        region = "cn"
+        year = 2024
+        source_path = "policy.md"
+        topics = ["fiscal"]
+        content_categories = ["policy"]
+        policy_tools = ["fiscal"]
+        mentioned_industries = []
+        dense_score = None
+        bm25_score = 1.2
+        retrieval_method = "bm25"
+
+    def fake_retrieve(query, *, start_year, end_year, top_k):
+        del query, start_year, end_year, top_k
+        from invesagent_agent.agents.macro_policy_analyst import _hit_to_dict
+
+        return [_hit_to_dict(Hit())], [], "bm25"
+
+    monkeypatch.setattr(
+        "invesagent_agent.agents.macro_policy_analyst._retrieve_policy_evidence",
+        fake_retrieve,
+    )
+    state = base_state(mock_tool_client)
+    state["user_query"] = "\u8d22\u653f\u653f\u7b56\u548c\u6269\u5185\u9700"
+    state["date_ranges"]["macro_policy"] = {"start_date": "20240101", "end_date": "20241231"}
+    result = run_macro_policy_analyst(state)
+    assert result["macro_policy_analysis"]["raw"]["hits"][0]["chunk_id"] == "chunk-1"
+    assert result["analyst_notes"]["macro_policy"]["summary"] == "mock summary"
 
 
 def test_price_volume_analyst_records_analysis_and_chart(mock_tool_client):

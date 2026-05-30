@@ -155,6 +155,7 @@ def _build_company_report_context(state: ResearchState) -> dict[str, Any]:
             "analysis": industry_package.get("analysis", {}),
             "data_limits": industry_package.get("analysis", {}).get("data_limits", []),
         },
+        "macro_policy_analysis": state.get("macro_policy_analysis", {}),
         "charts": _symbol_charts(state, symbol),
         "warnings": list(state.get("warnings", [])),
         "data_sources": ["InvesAgent MCP 工具", "MCP 结果中注明的 Tushare / AKShare 数据"],
@@ -170,6 +171,7 @@ def _build_generic_report_context(state: ResearchState, warnings: list[str]) -> 
         "date_ranges": state.get("date_ranges", {}),
         "report_review": state.get("report_review", {}),
         "industry_analysis": state.get("industry_analysis", {}),
+        "macro_policy_analysis": state.get("macro_policy_analysis", {}),
         "price_volume_analysis": state.get("price_volume_analysis", {}),
         "valuation_analysis": state.get("valuation_analysis", {}),
         "fundamental_analysis": state.get("fundamental_analysis", {}),
@@ -189,6 +191,12 @@ def _should_use_company_report(state: ResearchState) -> bool:
     ) in {"company_research", "full_report", "fundamental_analysis", "price_query"}
 
 
+def _should_use_macro_policy_report(state: ResearchState) -> bool:
+    return _report_type(state) == "macro_research_report" or state.get("task_plan", {}).get(
+        "task_type"
+    ) == "macro_research"
+
+
 def _report_type(state: ResearchState, fallback: str = "generic_report") -> str:
     review_type = state.get("report_review", {}).get("report_type")
     plan_type = state.get("task_plan", {}).get("report_type")
@@ -197,6 +205,41 @@ def _report_type(state: ResearchState, fallback: str = "generic_report") -> str:
 
 
 def _fallback_report(context: dict[str, Any]) -> str:
+    if context.get("report_type") == "macro_research_report":
+        macro = context.get("macro_policy_analysis", {})
+        analysis = macro.get("analysis", {}) if isinstance(macro, dict) else {}
+        raw = macro.get("raw", {}) if isinstance(macro, dict) else {}
+        lines = [
+            "# Macro / Policy Research",
+            "",
+            f"- Report type: {context.get('report_type')}",
+            f"- Query: {context.get('user_query')}",
+            "",
+            "## Summary",
+            analysis.get("summary") or "Macro/policy retrieval completed.",
+            "",
+            "## Key Findings",
+        ]
+        for item in (analysis.get("key_findings") or [])[:8]:
+            lines.append(f"- {item}")
+        lines.extend(["", "## Retrieved Evidence"])
+        for hit in (raw.get("hits") or [])[:8]:
+            lines.append(
+                f"- {hit.get('title') or hit.get('source_name')} "
+                f"({hit.get('year')}, {hit.get('chunk_id')}): "
+                f"{(hit.get('text') or '')[:180]}"
+            )
+        limits = [
+            *(analysis.get("data_limits") or []),
+            *context.get("warnings", []),
+        ]
+        if limits:
+            lines.extend(["", "## Data Limits And Risks"])
+            for item in limits[:12]:
+                lines.append(f"- {item}")
+        lines.append("\nThis report is for research only and is not investment advice.")
+        return "\n".join(lines)
+
     review = context.get("report_review", {})
     company = context.get("company", {})
     snapshot = context.get("market_snapshot", {})
@@ -261,7 +304,7 @@ def run_report_writer(state: ResearchState) -> ResearchState:
     warnings = list(state.get("warnings", []))
     report_type = _report_type(state)
     skill = FinancialReportSkill()
-    if _should_use_company_report(state):
+    if _should_use_company_report(state) and not _should_use_macro_policy_report(state):
         report_context = _build_company_report_context(state)
     else:
         report_context = _build_generic_report_context(state, warnings)

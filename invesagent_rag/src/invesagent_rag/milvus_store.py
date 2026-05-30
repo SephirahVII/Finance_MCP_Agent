@@ -9,10 +9,18 @@ class MilvusStore:
     def __init__(self, uri: str, collection_name: str, dimension: int, token: str | None = None) -> None:
         try:
             from pymilvus import DataType, MilvusClient
+            from pymilvus.exceptions import MilvusException
         except ModuleNotFoundError as exc:
             raise RuntimeError("Install pymilvus to use the RAG Milvus store.") from exc
         self.DataType = DataType
-        self.client = MilvusClient(uri=uri, token=token)
+        try:
+            self.client = MilvusClient(uri=uri, token=token)
+        except MilvusException as exc:
+            raise RuntimeError(
+                "Unable to connect to Milvus at "
+                f"{uri}. Start the Milvus server, update MILVUS_URI, or run query "
+                "with --mode bm25 to use the local metadata index without Milvus."
+            ) from None
         self.collection_name = collection_name
         self.dimension = dimension
 

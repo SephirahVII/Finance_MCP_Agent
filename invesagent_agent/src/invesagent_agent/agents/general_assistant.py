@@ -62,6 +62,25 @@ _CONCEPT_PATTERNS = (
 )
 
 
+_MACRO_POLICY_TERMS = {
+    "macro",
+    "policy",
+    "宏观",
+    "政策",
+    "财政",
+    "货币",
+    "政府",
+    "地方政府",
+    "政府工作报告",
+    "经济政策",
+    "产业政策",
+    "扩大内需",
+    "新能源",
+    "补贴",
+    "专项资金",
+}
+
+
 def _contains_any(text: str, terms: set[str]) -> bool:
     lower = text.lower()
     return any(term.lower() in lower for term in terms)
@@ -82,6 +101,7 @@ def _heuristic_route(query: str) -> dict[str, Any]:
 
     has_investment_term = _contains_any(text, _INVESTMENT_TERMS)
     has_research_verb = _contains_any(text, _RESEARCH_VERBS)
+    has_macro_policy_term = _contains_any(text, _MACRO_POLICY_TERMS)
     asks_concept = any(pattern in text for pattern in _CONCEPT_PATTERNS)
     has_code = bool(_TS_CODE_RE.search(text))
     has_date = bool(_DATE_RE.search(text))
@@ -94,6 +114,17 @@ def _heuristic_route(query: str) -> dict[str, Any]:
             "needs_investment_workflow": False,
             "confidence": 0.86,
             "reason": "用户在询问金融概念，不需要真实行情或财务数据。",
+            "response": None,
+            "normalized_query": text,
+        }
+
+    if has_macro_policy_term:
+        return {
+            "route": "investment_task",
+            "intent": "macro_policy_research_task",
+            "needs_investment_workflow": True,
+            "confidence": 0.86,
+            "reason": "用户提出宏观、地方政府或产业政策相关问题，应进入宏观政策 RAG 研究流程。",
             "response": None,
             "normalized_query": text,
         }
@@ -150,6 +181,8 @@ def run_general_assistant(state: ChatState) -> ChatState:
     route = decision.get("route") or fallback["route"]
     if route not in {"general_answer", "investment_task"}:
         route = fallback["route"]
+    if fallback.get("intent") == "macro_policy_research_task":
+        route = "investment_task"
 
     if route == "investment_task":
         return runtime.finish(

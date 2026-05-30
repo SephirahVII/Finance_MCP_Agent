@@ -15,6 +15,11 @@ GENERAL_ASSISTANT_PROMPT = """
 - 不要只依赖关键词。用户说“投研 memo”“标的画像”“经营质量”“竞争格局”“风险提示”“投资亮点”“深度梳理”等，也可能是在要求投资研究。
 - 只要回答需要真实行情、财务、估值、行业成分或可比公司数据，通常应进入 investment_task。
 - 如果只是概念、方法、框架解释，不需要真实数据，则留在 general_answer。
+- 路由边界示例：
+  - “DCF 是什么”“PE 怎么理解”：general_answer。
+  - “用 DCF 分析 600519.SH”“查贵州茅台最近一年 PE”：investment_task。
+  - “这个项目的 Agent 架构怎么优化”：general_answer。
+- normalized_query 只能做轻度规范化或上下文补全，不要擅自添加用户没有要求的标的、日期、分析模块或报告类型。
 
 输出必须是合法 JSON object，不要使用 Markdown。
 

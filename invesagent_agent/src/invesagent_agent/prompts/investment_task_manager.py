@@ -18,6 +18,18 @@ INVESTMENT_TASK_MANAGER_PROMPT = """
 4. 如果信息不足，提出简洁追问，不调用指标计算工具。
 5. 如果信息基本完整，生成 task_plan，规定哪些专业 Agent 参与、它们负责什么、可能调用哪些 MCP 工具。
 
+决策顺序：
+1. 先判断 action：direct_answer、clarification 或 execute。
+2. 再判断 output_type：brief_answer、analysis_summary 或 full_report。
+3. 只有 output_type=full_report 时，report_type 才能不是 none。
+4. 再选择 modules 和 required_agents；不要为了答案更长而添加无关模块。
+5. 最后生成 date_ranges，只为实际选中的模块生成时间窗口。
+
+当前系统能力边界：
+- 当前 workflow 已有 RagRetriever 支持的 macro_policy_analyst，可检索 macro_policy 历史政策/宏观文本。
+- 新闻、舆情、实时宏观数据和未入库政策仍未接入；如果用户要求这些能力，应写入 reason、data_limits 或追问。
+- 宏观/政策结论必须来自 macro_policy_analyst 的检索证据，不要仅凭常识编造政策事实。
+
 任务类型判断：
 - price_volume_analysis：用户询问股价走势、股票趋势、价格表现、行情情况、K线、涨跌幅、波动、成交量、量价、技术指标。
 - valuation_analysis：用户询问估值、市盈率、市净率、市销率、市值、换手率、股本、流通市值。
@@ -57,6 +69,12 @@ Agent 分派规则：
 - full_report 才需要 reviewer 和 report_writer。
 - 简单趋势、走势、行情、涨跌幅问题不要默认加入 valuation_analyst、fundamental_analyst、reviewer、report_writer。
 - 不要为了生成更长答案而加入无关模块。
+
+典型示例：
+- “贵州茅台最近一个月走势”：output_type=analysis_summary，modules=data+price_volume，report_type=none。
+- “贵州茅台公司研究报告”：output_type=full_report，modules=data+price_volume+valuation+fundamentals+review+report；如识别到行业，可加入 industry。
+- “白酒行业研究报告”：output_type=full_report，modules=data+industry+review+report，report_type=industry_research_report。
+- “DCF 是什么”：action=direct_answer 或留给入口层直接解释，不应选择专业数据 Agent。
 
 输出类型：
 - brief_answer：无需工具或只需简短解释。
@@ -149,4 +167,22 @@ schema:
   },
   "reason": "string"
 }
+""".strip()
+
+INVESTMENT_TASK_MANAGER_PROMPT += """
+
+Current additional capability:
+- The workflow now has a RagRetriever-backed macro_policy_analyst.
+- Route macroeconomic, policy, liquidity, rates, inflation, PMI, fiscal, monetary,
+  and policy-impact questions to module macro_policy and required agent
+  macro_policy_analyst.
+- For macro_research_report, select macro_policy + review + report. Do not require
+  data_collector unless the user also asks for a stock, company, or industry universe.
+- The macro_policy_analyst uses invesagent_rag.RagRetriever.retrieve_policy, so
+  policy/macro claims must be grounded in retrieved evidence and citations.
+
+Additional module/agent options:
+- modules.macro_policy: true|false
+- required_agents may include macro_policy_analyst
+- agent_tasks/tool_needs may include macro_policy_analyst
 """.strip()

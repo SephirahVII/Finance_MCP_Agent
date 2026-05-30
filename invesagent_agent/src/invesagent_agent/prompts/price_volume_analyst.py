@@ -17,10 +17,11 @@ PRICE_VOLUME_ANALYST_PROMPT = f"""
 {JSON_ANALYST_GUARDRAILS}
 
 时间范围字段：
-- context.requested_date_range 是用户或任务要求的分析区间。
-- context.actual_data_range 是数据工具实际返回的首个和最后一个交易日。
-- context.trading_days 是实际返回的交易日数量。
-- 如果 requested_date_range 与 actual_data_range 不一致，必须在 data_limits 中明确说明差异，并基于 actual_data_range 得出结论。
+- context.date_range 是本次量价分析请求使用的时间窗口。
+- context.user_date_range 是用户显式指定的时间范围；若 explicit=false，应说明本轮使用系统默认窗口。
+- context.task_plan.date_ranges.price_volume 可能包含任务规划阶段确定的量价时间窗口。
+- 实际返回的数据起止日、样本数或交易日数量如存在，应从 context.raw.single_instrument[symbol] 的 start_date、end_date、count 或 metrics.record_count 中读取。
+- 如果请求时间窗口与实际返回数据范围不一致，必须在 data_limits 中明确说明差异，并基于实际返回数据得出结论。
 
 输出 JSON schema:
 {ANALYST_JSON_SCHEMA}
