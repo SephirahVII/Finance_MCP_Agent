@@ -1,0 +1,76 @@
+[
+  {
+    "id": "l3_company_valuation_report_quality",
+    "category": "l3_quality",
+    "query": "Generate a valuation report for 600519.SH using PE and PB, including risks and data limits",
+    "expected": {
+      "route": "investment_task",
+      "action": "execute",
+      "required_agents": [
+        "data_collector",
+        "valuation_analyst",
+        "reviewer",
+        "report_writer"
+      ],
+      "report_type": "company_valuation_report",
+      "tools": [
+        "resolve_instrument_tool",
+        "analyze_valuation_tool"
+      ],
+      "quality": {
+        "min_overall": 0.75,
+        "must_include": [
+          "valuation",
+          "risks",
+          "data limits"
+        ],
+        "must_include_any": [
+          "no investment advice",
+          "not investment advice"
+        ]
+      },
+      "efficiency": {
+        "max_tool_calls": 8,
+        "max_duplicate_tool_calls": 1,
+        "max_trace_steps": 60
+      }
+    }
+  },
+  {
+    "id": "l3_macro_research_report_quality",
+    "category": "l3_quality",
+    "query": "Analyze fiscal policy impact on expanding domestic demand and generate a macro research report with evidence and risks",
+    "expected": {
+      "route": "investment_task",
+      "action": "execute",
+      "required_agents": [
+        "macro_policy_analyst",
+        "reviewer",
+        "report_writer"
+      ],
+      "report_type": "macro_research_report",
+      "forbidden_tools": true,
+      "rag": {
+        "source_type": "macro_policy",
+        "min_hits": 1
+      },
+      "quality": {
+        "min_overall": 0.75,
+        "must_include": [
+          "policy",
+          "evidence",
+          "risks"
+        ],
+        "must_include_any": [
+          "data limits",
+          "limitations"
+        ]
+      },
+      "efficiency": {
+        "max_tool_calls": 0,
+        "max_trace_steps": 50
+      }
+    }
+  }
+]
+

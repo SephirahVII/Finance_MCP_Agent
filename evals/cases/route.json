@@ -1,0 +1,37 @@
+[
+  {
+    "id": "route_general_chat",
+    "category": "route",
+    "query": "hello, what can you do?",
+    "expected": {
+      "route": "general_answer",
+      "forbidden_tools": true,
+      "efficiency": {
+        "max_tool_calls": 0,
+        "max_trace_steps": 8
+      },
+      "forbidden_agents": [
+        "data_collector",
+        "price_volume_analyst",
+        "valuation_analyst",
+        "fundamental_analyst",
+        "industry_analyst",
+        "macro_policy_analyst",
+        "report_writer"
+      ]
+    }
+  },
+  {
+    "id": "route_finance_concept",
+    "category": "route",
+    "query": "What is DCF?",
+    "expected": {
+      "route": "general_answer",
+      "forbidden_tools": true,
+      "efficiency": {
+        "max_tool_calls": 0,
+        "max_trace_steps": 8
+      }
+    }
+  }
+]

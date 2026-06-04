@@ -1,0 +1,3517 @@
+{
+  "summary": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0,
+    "pass_rate": 1.0,
+    "by_category": {
+      "fundamentals": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "industry": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "l2_integration": {
+        "total": 2,
+        "passed": 2,
+        "failed": 0
+      },
+      "l3_quality": {
+        "total": 2,
+        "passed": 2,
+        "failed": 0
+      },
+      "macro_policy": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "multi_turn": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "price_volume": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "route": {
+        "total": 2,
+        "passed": 2,
+        "failed": 0
+      },
+      "valuation": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      }
+    },
+    "by_benchmark": {
+      "l1": {
+        "total": 8,
+        "passed": 8,
+        "failed": 0,
+        "pass_rate": 1.0
+      },
+      "l2": {
+        "total": 2,
+        "passed": 2,
+        "failed": 0,
+        "pass_rate": 1.0
+      },
+      "l3": {
+        "total": 2,
+        "passed": 2,
+        "failed": 0,
+        "pass_rate": 1.0
+      }
+    },
+    "metrics": {
+      "efficiency": 1.0,
+      "llm_judge": 1.0,
+      "memory": 1.0,
+      "output_quality": 1.0,
+      "quality": 1.0,
+      "rag": 1.0,
+      "route": 1.0,
+      "task_plan": 1.0,
+      "tool_calls": 1.0,
+      "trajectory": 1.0
+    }
+  },
+  "results": [
+    {
+      "id": "fundamentals_maotai",
+      "category": "fundamentals",
+      "benchmark": "l1",
+      "passed": true,
+      "scores": {
+        "route": {
+          "passed": true,
+          "score": 1.0,
+          "expected": "investment_task",
+          "actual": "investment_task"
+        },
+        "task_plan": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "action",
+              "passed": true
+            }
+          ],
+          "task_plan": {
+            "action": "execute",
+            "task_type": "fundamental_analysis",
+            "target": {
+              "symbols": [
+                "600519.SH"
+              ],
+              "names": [],
+              "industry": null,
+              "market": "cn",
+              "asset_type": "stock"
+            },
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "user_date_range": {
+              "start_date": null,
+              "end_date": null,
+              "explicit": false
+            },
+            "date_ranges": {
+              "fundamentals": {
+                "start_date": "20260303",
+                "end_date": "20260601"
+              }
+            },
+            "required_agents": [
+              "data_collector",
+              "fundamental_analyst"
+            ],
+            "modules": {
+              "data": true,
+              "macro_policy": false,
+              "industry": false,
+              "price_volume": false,
+              "valuation": false,
+              "fundamentals": true,
+              "review": false,
+              "report": false
+            },
+            "agent_tasks": {
+              "data_collector": "Run data_collector",
+              "fundamental_analyst": "Run fundamental_analyst"
+            },
+            "tool_needs": {},
+            "needs_tool": true,
+            "needs_clarification": false,
+            "missing_fields": [],
+            "clarifying_question": null,
+            "direct_answer": null,
+            "output_type": "analysis_summary",
+            "report_requirements": {
+              "language": "en",
+              "style": "concise"
+            },
+            "reason": "deterministic eval plan",
+            "report_type": "none"
+          }
+        },
+        "trajectory": {
+          "passed": true,
+          "score": 1.0,
+          "expected_agents": [
+            "data_collector",
+            "fundamental_analyst"
+          ],
+          "actual_agents": [
+            "data_collector",
+            "fundamental_analyst"
+          ],
+          "missing_agents": [],
+          "forbidden_agents_present": []
+        },
+        "tool_calls": {
+          "passed": true,
+          "score": 1.0,
+          "expected_tools": [
+            "analyze_fundamentals_tool",
+            "resolve_instrument_tool"
+          ],
+          "actual_tools": [
+            "resolve_instrument_tool",
+            "analyze_fundamentals_tool"
+          ],
+          "missing_tools": [],
+          "redundant_tools": []
+        },
+        "memory": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "rag": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "output_quality": {
+          "passed": true,
+          "score": 1.0,
+          "response": "mock fundamental_analyst summary\n- mock finding from fundamental_analyst"
+        },
+        "efficiency": {
+          "passed": true,
+          "score": 1.0,
+          "metrics": {
+            "tool_call_count": 2,
+            "duplicate_tool_call_count": 0,
+            "trace_step_count": 6,
+            "avg_tool_latency_ms": 0.0,
+            "max_tool_latency_ms": 0.0,
+            "tool_success_rate": 1.0
+          },
+          "checks": [
+            {
+              "name": "max_tool_calls",
+              "passed": true,
+              "actual": 2,
+              "expected": 2
+            },
+            {
+              "name": "max_duplicate_tool_calls",
+              "passed": true,
+              "actual": 0,
+              "expected": 0
+            },
+            {
+              "name": "max_trace_steps",
+              "passed": true,
+              "actual": 6,
+              "expected": 25
+            }
+          ]
+        },
+        "quality": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "llm_judge": {
+          "passed": true,
+          "score": 1.0,
+          "skipped": true,
+          "reason": "no quality rubric"
+        }
+      },
+      "conversation_route": "investment_task",
+      "required_agents": [
+        "data_collector",
+        "fundamental_analyst"
+      ],
+      "tool_calls": [
+        {
+          "node": "data_collector",
+          "tool": "resolve_instrument_tool",
+          "arguments": {
+            "query": "600519.SH",
+            "market": "cn",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "fundamental_analyst",
+          "tool": "analyze_fundamentals_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "provider": "auto"
+          }
+        }
+      ],
+      "trace": [
+        {
+          "created_at": "2026-06-01T00:09:39.152304+00:00",
+          "event": "research_started",
+          "node": "research_graph",
+          "payload": {
+            "user_query": "Analyze 600519.SH fundamentals, revenue, profit, ROE and cash flow"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.153302+00:00",
+          "event": "tool_requested",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "arguments": {
+              "query": "600519.SH",
+              "market": "cn",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.153302+00:00",
+          "event": "tool_completed",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.153302+00:00",
+          "event": "tool_requested",
+          "node": "fundamental_analyst",
+          "payload": {
+            "tool": "analyze_fundamentals_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20260303",
+              "end_date": "20260601",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.153302+00:00",
+          "event": "tool_completed",
+          "node": "fundamental_analyst",
+          "payload": {
+            "tool": "analyze_fundamentals_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.154302+00:00",
+          "event": "research_finished",
+          "node": "research_graph",
+          "payload": {}
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "industry_liquor",
+      "category": "industry",
+      "benchmark": "l1",
+      "passed": true,
+      "scores": {
+        "route": {
+          "passed": true,
+          "score": 1.0,
+          "expected": "investment_task",
+          "actual": "investment_task"
+        },
+        "task_plan": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "action",
+              "passed": true
+            }
+          ],
+          "task_plan": {
+            "action": "execute",
+            "task_type": "industry_research",
+            "target": {
+              "symbols": [
+                "Analyze the liquor industry and its leading stocks"
+              ],
+              "names": [],
+              "industry": "liquor",
+              "market": "cn",
+              "asset_type": "stock"
+            },
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "user_date_range": {
+              "start_date": null,
+              "end_date": null,
+              "explicit": false
+            },
+            "date_ranges": {
+              "industry": {
+                "start_date": "20260303",
+                "end_date": "20260601"
+              }
+            },
+            "required_agents": [
+              "data_collector",
+              "industry_analyst"
+            ],
+            "modules": {
+              "data": true,
+              "macro_policy": false,
+              "industry": true,
+              "price_volume": false,
+              "valuation": false,
+              "fundamentals": false,
+              "review": false,
+              "report": false
+            },
+            "agent_tasks": {
+              "data_collector": "Run data_collector",
+              "industry_analyst": "Run industry_analyst"
+            },
+            "tool_needs": {},
+            "needs_tool": true,
+            "needs_clarification": false,
+            "missing_fields": [],
+            "clarifying_question": null,
+            "direct_answer": null,
+            "output_type": "analysis_summary",
+            "report_requirements": {
+              "language": "en",
+              "style": "concise"
+            },
+            "reason": "deterministic eval plan",
+            "report_type": "none"
+          }
+        },
+        "trajectory": {
+          "passed": true,
+          "score": 1.0,
+          "expected_agents": [
+            "data_collector",
+            "industry_analyst"
+          ],
+          "actual_agents": [
+            "data_collector",
+            "industry_analyst"
+          ],
+          "missing_agents": [],
+          "forbidden_agents_present": []
+        },
+        "tool_calls": {
+          "passed": true,
+          "score": 1.0,
+          "expected_tools": [
+            "compare_ohlcv_instruments_tool",
+            "get_industry_members_tool",
+            "resolve_instrument_tool"
+          ],
+          "actual_tools": [
+            "resolve_instrument_tool",
+            "get_industry_members_tool",
+            "get_industry_members_tool",
+            "compare_ohlcv_instruments_tool"
+          ],
+          "missing_tools": [],
+          "redundant_tools": []
+        },
+        "memory": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "rag": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "output_quality": {
+          "passed": true,
+          "score": 1.0,
+          "response": "mock industry_analyst summary\n- mock finding from industry_analyst"
+        },
+        "efficiency": {
+          "passed": true,
+          "score": 1.0,
+          "metrics": {
+            "tool_call_count": 4,
+            "duplicate_tool_call_count": 0,
+            "trace_step_count": 10,
+            "avg_tool_latency_ms": 0.0,
+            "max_tool_latency_ms": 0.0,
+            "tool_success_rate": 1.0
+          },
+          "checks": [
+            {
+              "name": "max_tool_calls",
+              "passed": true,
+              "actual": 4,
+              "expected": 4
+            },
+            {
+              "name": "max_duplicate_tool_calls",
+              "passed": true,
+              "actual": 0,
+              "expected": 1
+            },
+            {
+              "name": "max_trace_steps",
+              "passed": true,
+              "actual": 10,
+              "expected": 35
+            }
+          ]
+        },
+        "quality": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "llm_judge": {
+          "passed": true,
+          "score": 1.0,
+          "skipped": true,
+          "reason": "no quality rubric"
+        }
+      },
+      "conversation_route": "investment_task",
+      "required_agents": [
+        "data_collector",
+        "industry_analyst"
+      ],
+      "tool_calls": [
+        {
+          "node": "data_collector",
+          "tool": "resolve_instrument_tool",
+          "arguments": {
+            "query": "Analyze the liquor industry and its leading stocks",
+            "market": "cn",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "data_collector",
+          "tool": "get_industry_members_tool",
+          "arguments": {
+            "industry": "liquor",
+            "market": "cn",
+            "provider": "auto",
+            "limit": 10
+          }
+        },
+        {
+          "node": "industry_analyst",
+          "tool": "get_industry_members_tool",
+          "arguments": {
+            "industry": "liquor",
+            "market": "cn",
+            "provider": "auto",
+            "limit": 10
+          }
+        },
+        {
+          "node": "industry_analyst",
+          "tool": "compare_ohlcv_instruments_tool",
+          "arguments": {
+            "symbols": "600519.SH,000858.SZ",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "provider": "auto",
+            "include_correlation": true,
+            "include_valuation": true,
+            "include_fundamentals": false
+          }
+        }
+      ],
+      "trace": [
+        {
+          "created_at": "2026-06-01T00:09:39.182963+00:00",
+          "event": "research_started",
+          "node": "research_graph",
+          "payload": {
+            "user_query": "Analyze the liquor industry and its leading stocks"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.183963+00:00",
+          "event": "tool_requested",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "arguments": {
+              "query": "Analyze the liquor industry and its leading stocks",
+              "market": "cn",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.183963+00:00",
+          "event": "tool_completed",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "Analyze the liquor industry and its leading stocks"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.183963+00:00",
+          "event": "tool_requested",
+          "node": "data_collector",
+          "payload": {
+            "tool": "get_industry_members_tool",
+            "arguments": {
+              "industry": "liquor",
+              "market": "cn",
+              "provider": "auto",
+              "limit": 10
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.183963+00:00",
+          "event": "tool_completed",
+          "node": "data_collector",
+          "payload": {
+            "tool": "get_industry_members_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "industry": "liquor"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.183963+00:00",
+          "event": "tool_requested",
+          "node": "industry_analyst",
+          "payload": {
+            "tool": "get_industry_members_tool",
+            "arguments": {
+              "industry": "liquor",
+              "market": "cn",
+              "provider": "auto",
+              "limit": 10
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.183963+00:00",
+          "event": "tool_completed",
+          "node": "industry_analyst",
+          "payload": {
+            "tool": "get_industry_members_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "industry": "liquor"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.184962+00:00",
+          "event": "tool_requested",
+          "node": "industry_analyst",
+          "payload": {
+            "tool": "compare_ohlcv_instruments_tool",
+            "arguments": {
+              "symbols": "600519.SH,000858.SZ",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20260303",
+              "end_date": "20260601",
+              "provider": "auto",
+              "include_correlation": true,
+              "include_valuation": true,
+              "include_fundamentals": false
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.184962+00:00",
+          "event": "tool_completed",
+          "node": "industry_analyst",
+          "payload": {
+            "tool": "compare_ohlcv_instruments_tool",
+            "success": true,
+            "elapsed_ms": 0.0
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.184962+00:00",
+          "event": "research_finished",
+          "node": "research_graph",
+          "payload": {}
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "macro_policy_expand_demand_report",
+      "category": "macro_policy",
+      "benchmark": "l1",
+      "passed": true,
+      "scores": {
+        "route": {
+          "passed": true,
+          "score": 1.0,
+          "expected": "investment_task",
+          "actual": "investment_task"
+        },
+        "task_plan": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "action",
+              "passed": true
+            },
+            {
+              "name": "report_type",
+              "passed": true
+            }
+          ],
+          "task_plan": {
+            "action": "execute",
+            "task_type": "macro_research",
+            "target": {
+              "symbols": [],
+              "names": [],
+              "industry": null,
+              "market": "cn",
+              "asset_type": "stock"
+            },
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "user_date_range": {
+              "start_date": null,
+              "end_date": null,
+              "explicit": false
+            },
+            "date_ranges": {
+              "macro_policy": {
+                "start_date": "20260303",
+                "end_date": "20260601"
+              }
+            },
+            "required_agents": [
+              "macro_policy_analyst",
+              "reviewer",
+              "report_writer"
+            ],
+            "modules": {
+              "data": false,
+              "macro_policy": true,
+              "industry": false,
+              "price_volume": false,
+              "valuation": false,
+              "fundamentals": false,
+              "review": true,
+              "report": true
+            },
+            "agent_tasks": {
+              "macro_policy_analyst": "Run macro_policy_analyst",
+              "reviewer": "Run reviewer",
+              "report_writer": "Run report_writer"
+            },
+            "tool_needs": {},
+            "needs_tool": true,
+            "needs_clarification": false,
+            "missing_fields": [],
+            "clarifying_question": null,
+            "direct_answer": null,
+            "output_type": "full_report",
+            "report_type": "macro_research_report",
+            "report_requirements": {
+              "language": "en",
+              "style": "concise"
+            },
+            "reason": "deterministic eval plan"
+          }
+        },
+        "trajectory": {
+          "passed": true,
+          "score": 1.0,
+          "expected_agents": [
+            "macro_policy_analyst",
+            "report_writer",
+            "reviewer"
+          ],
+          "actual_agents": [
+            "macro_policy_analyst",
+            "report_writer",
+            "reviewer"
+          ],
+          "missing_agents": [],
+          "forbidden_agents_present": []
+        },
+        "tool_calls": {
+          "passed": true,
+          "score": 1.0,
+          "actual_tools": [],
+          "unexpected_tools": []
+        },
+        "memory": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "rag": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "min_hits",
+              "passed": true,
+              "actual": 1,
+              "expected": 1
+            },
+            {
+              "name": "source_type",
+              "passed": true,
+              "actual": "macro_policy",
+              "expected": "macro_policy"
+            },
+            {
+              "name": "rag_completed_trace",
+              "passed": true,
+              "actual": 1,
+              "expected": 1
+            }
+          ]
+        },
+        "output_quality": {
+          "passed": true,
+          "score": 1.0,
+          "missing": [],
+          "must_include_any_passed": true,
+          "response": "mock report: valuation, fundamentals, policy evidence, risks, data limits, and no investment advice."
+        },
+        "efficiency": {
+          "passed": true,
+          "score": 1.0,
+          "metrics": {
+            "tool_call_count": 0,
+            "duplicate_tool_call_count": 0,
+            "trace_step_count": 4,
+            "avg_tool_latency_ms": 0.0,
+            "max_tool_latency_ms": 0.0,
+            "tool_success_rate": 1.0
+          },
+          "checks": [
+            {
+              "name": "max_tool_calls",
+              "passed": true,
+              "actual": 0,
+              "expected": 0
+            },
+            {
+              "name": "max_trace_steps",
+              "passed": true,
+              "actual": 4,
+              "expected": 45
+            }
+          ]
+        },
+        "quality": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "llm_judge": {
+          "passed": true,
+          "score": 1.0,
+          "skipped": true,
+          "reason": "no quality rubric"
+        }
+      },
+      "conversation_route": "investment_task",
+      "required_agents": [
+        "macro_policy_analyst",
+        "reviewer",
+        "report_writer"
+      ],
+      "tool_calls": [],
+      "trace": [
+        {
+          "created_at": "2026-06-01T00:09:39.211507+00:00",
+          "event": "research_started",
+          "node": "research_graph",
+          "payload": {
+            "user_query": "Analyze fiscal policy impact on expanding domestic demand and generate a macro research report"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.213507+00:00",
+          "event": "rag_requested",
+          "node": "macro_policy_analyst",
+          "payload": {
+            "source_type": "macro_policy",
+            "start_year": 2026,
+            "end_year": 2026,
+            "top_k": 6
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.213507+00:00",
+          "event": "rag_completed",
+          "node": "macro_policy_analyst",
+          "payload": {
+            "source_type": "macro_policy",
+            "mode": "bm25",
+            "hit_count": 1
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.214510+00:00",
+          "event": "research_finished",
+          "node": "research_graph",
+          "payload": {}
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "multi_turn_stock_code_followup",
+      "category": "multi_turn",
+      "benchmark": "l1",
+      "passed": true,
+      "scores": {
+        "route": {
+          "passed": true,
+          "score": 1.0,
+          "expected": "investment_task",
+          "actual": "investment_task"
+        },
+        "task_plan": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "action",
+              "passed": true
+            }
+          ],
+          "task_plan": {
+            "action": "execute",
+            "task_type": "company_research_report",
+            "target": {
+              "symbols": [
+                "600519.SH"
+              ],
+              "names": [],
+              "industry": null,
+              "market": "cn",
+              "asset_type": "stock"
+            },
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "user_date_range": {
+              "start_date": null,
+              "end_date": null,
+              "explicit": false
+            },
+            "date_ranges": {},
+            "required_agents": [
+              "data_collector",
+              "reviewer",
+              "report_writer"
+            ],
+            "modules": {
+              "data": true,
+              "macro_policy": false,
+              "industry": false,
+              "price_volume": false,
+              "valuation": false,
+              "fundamentals": false,
+              "review": true,
+              "report": true
+            },
+            "agent_tasks": {
+              "data_collector": "Run data_collector",
+              "reviewer": "Run reviewer",
+              "report_writer": "Run report_writer"
+            },
+            "tool_needs": {},
+            "needs_tool": true,
+            "needs_clarification": false,
+            "missing_fields": [],
+            "clarifying_question": null,
+            "direct_answer": null,
+            "output_type": "full_report",
+            "report_requirements": {
+              "language": "en",
+              "style": "concise"
+            },
+            "reason": "deterministic eval plan",
+            "report_type": "company_research_report"
+          }
+        },
+        "trajectory": {
+          "passed": true,
+          "score": 1.0,
+          "expected_agents": [
+            "data_collector",
+            "report_writer",
+            "reviewer"
+          ],
+          "actual_agents": [
+            "data_collector",
+            "fundamental_analyst",
+            "price_volume_analyst",
+            "report_writer",
+            "reviewer",
+            "valuation_analyst"
+          ],
+          "missing_agents": [],
+          "forbidden_agents_present": []
+        },
+        "tool_calls": {
+          "passed": true,
+          "score": 1.0,
+          "expected_tools": [
+            "resolve_instrument_tool"
+          ],
+          "actual_tools": [
+            "resolve_instrument_tool",
+            "analyze_ohlcv_price_trend_tool",
+            "generate_ohlcv_price_chart_tool",
+            "analyze_valuation_tool",
+            "analyze_fundamentals_tool"
+          ],
+          "missing_tools": [],
+          "redundant_tools": [
+            "analyze_ohlcv_price_trend_tool",
+            "generate_ohlcv_price_chart_tool",
+            "analyze_valuation_tool",
+            "analyze_fundamentals_tool"
+          ]
+        },
+        "memory": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "last_symbols",
+              "passed": true,
+              "expected": [
+                "600519.SH"
+              ],
+              "actual": [
+                "600519.SH"
+              ]
+            }
+          ]
+        },
+        "rag": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "output_quality": {
+          "passed": true,
+          "score": 1.0,
+          "response": "mock report: valuation, fundamentals, policy evidence, risks, data limits, and no investment advice."
+        },
+        "efficiency": {
+          "passed": true,
+          "score": 1.0,
+          "metrics": {
+            "tool_call_count": 5,
+            "duplicate_tool_call_count": 0,
+            "trace_step_count": 12,
+            "avg_tool_latency_ms": 0.0,
+            "max_tool_latency_ms": 0.0,
+            "tool_success_rate": 1.0
+          },
+          "checks": [
+            {
+              "name": "max_tool_calls",
+              "passed": true,
+              "actual": 5,
+              "expected": 6
+            },
+            {
+              "name": "max_duplicate_tool_calls",
+              "passed": true,
+              "actual": 0,
+              "expected": 0
+            },
+            {
+              "name": "max_trace_steps",
+              "passed": true,
+              "actual": 12,
+              "expected": 40
+            }
+          ]
+        },
+        "quality": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "llm_judge": {
+          "passed": true,
+          "score": 1.0,
+          "skipped": true,
+          "reason": "no quality rubric"
+        }
+      },
+      "conversation_route": "investment_task",
+      "required_agents": [
+        "data_collector",
+        "reviewer",
+        "report_writer",
+        "price_volume_analyst",
+        "valuation_analyst",
+        "fundamental_analyst"
+      ],
+      "tool_calls": [
+        {
+          "node": "data_collector",
+          "tool": "resolve_instrument_tool",
+          "arguments": {
+            "query": "600519.SH",
+            "market": "cn",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "price_volume_analyst",
+          "tool": "analyze_ohlcv_price_trend_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "price_volume_analyst",
+          "tool": "generate_ohlcv_price_chart_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "provider": "auto",
+            "chart_type": "candlestick",
+            "ma_windows": "5,20",
+            "show_volume": true,
+            "indicators": "bollinger,rsi,macd"
+          }
+        },
+        {
+          "node": "valuation_analyst",
+          "tool": "analyze_valuation_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20250601",
+            "end_date": "20260601",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "fundamental_analyst",
+          "tool": "analyze_fundamentals_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20250601",
+            "end_date": "20260601",
+            "provider": "auto"
+          }
+        }
+      ],
+      "trace": [
+        {
+          "created_at": "2026-06-01T00:09:39.242890+00:00",
+          "event": "research_started",
+          "node": "research_graph",
+          "payload": {
+            "user_query": "Please generate a company research report\nFollow-up: user supplied stock code 600519.SH."
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.243898+00:00",
+          "event": "tool_requested",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "arguments": {
+              "query": "600519.SH",
+              "market": "cn",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.243898+00:00",
+          "event": "tool_completed",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.244901+00:00",
+          "event": "tool_requested",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "analyze_ohlcv_price_trend_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20260303",
+              "end_date": "20260601",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.244901+00:00",
+          "event": "tool_completed",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "analyze_ohlcv_price_trend_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.244901+00:00",
+          "event": "tool_requested",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "generate_ohlcv_price_chart_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20260303",
+              "end_date": "20260601",
+              "provider": "auto",
+              "chart_type": "candlestick",
+              "ma_windows": "5,20",
+              "show_volume": true,
+              "indicators": "bollinger,rsi,macd"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.244901+00:00",
+          "event": "tool_completed",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "generate_ohlcv_price_chart_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.245896+00:00",
+          "event": "tool_requested",
+          "node": "valuation_analyst",
+          "payload": {
+            "tool": "analyze_valuation_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20250601",
+              "end_date": "20260601",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.245896+00:00",
+          "event": "tool_completed",
+          "node": "valuation_analyst",
+          "payload": {
+            "tool": "analyze_valuation_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.245896+00:00",
+          "event": "tool_requested",
+          "node": "fundamental_analyst",
+          "payload": {
+            "tool": "analyze_fundamentals_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20250601",
+              "end_date": "20260601",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.245896+00:00",
+          "event": "tool_completed",
+          "node": "fundamental_analyst",
+          "payload": {
+            "tool": "analyze_fundamentals_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.255186+00:00",
+          "event": "research_finished",
+          "node": "research_graph",
+          "payload": {}
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "price_volume_maotai_q1",
+      "category": "price_volume",
+      "benchmark": "l1",
+      "passed": true,
+      "scores": {
+        "route": {
+          "passed": true,
+          "score": 1.0,
+          "expected": "investment_task",
+          "actual": "investment_task"
+        },
+        "task_plan": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "action",
+              "passed": true
+            },
+            {
+              "name": "symbol",
+              "passed": true
+            },
+            {
+              "name": "start_date",
+              "passed": true
+            },
+            {
+              "name": "end_date",
+              "passed": true
+            }
+          ],
+          "task_plan": {
+            "action": "execute",
+            "task_type": "price_volume_analysis",
+            "target": {
+              "symbols": [
+                "600519.SH"
+              ],
+              "names": [],
+              "industry": null,
+              "market": "cn",
+              "asset_type": "stock"
+            },
+            "start_date": "20240101",
+            "end_date": "20240331",
+            "user_date_range": {
+              "start_date": "20240101",
+              "end_date": "20240331",
+              "explicit": true
+            },
+            "date_ranges": {
+              "price_volume": {
+                "start_date": "20240101",
+                "end_date": "20240331"
+              }
+            },
+            "required_agents": [
+              "data_collector",
+              "price_volume_analyst"
+            ],
+            "modules": {
+              "data": true,
+              "macro_policy": false,
+              "industry": false,
+              "price_volume": true,
+              "valuation": false,
+              "fundamentals": false,
+              "review": false,
+              "report": false
+            },
+            "agent_tasks": {
+              "data_collector": "Run data_collector",
+              "price_volume_analyst": "Run price_volume_analyst"
+            },
+            "tool_needs": {},
+            "needs_tool": true,
+            "needs_clarification": false,
+            "missing_fields": [],
+            "clarifying_question": null,
+            "direct_answer": null,
+            "output_type": "analysis_summary",
+            "report_requirements": {
+              "language": "en",
+              "style": "concise"
+            },
+            "reason": "deterministic eval plan",
+            "report_type": "none"
+          }
+        },
+        "trajectory": {
+          "passed": true,
+          "score": 1.0,
+          "expected_agents": [
+            "data_collector",
+            "price_volume_analyst"
+          ],
+          "actual_agents": [
+            "data_collector",
+            "price_volume_analyst"
+          ],
+          "missing_agents": [],
+          "forbidden_agents_present": []
+        },
+        "tool_calls": {
+          "passed": true,
+          "score": 1.0,
+          "expected_tools": [
+            "analyze_ohlcv_price_trend_tool",
+            "generate_ohlcv_price_chart_tool",
+            "resolve_instrument_tool"
+          ],
+          "actual_tools": [
+            "resolve_instrument_tool",
+            "analyze_ohlcv_price_trend_tool",
+            "generate_ohlcv_price_chart_tool"
+          ],
+          "missing_tools": [],
+          "redundant_tools": []
+        },
+        "memory": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "rag": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "output_quality": {
+          "passed": true,
+          "score": 1.0,
+          "missing": [],
+          "must_include_any_passed": true,
+          "response": "分析区间：20240101 至 20240331\n\nmock price_volume_analyst summary\n- mock finding from price_volume_analyst"
+        },
+        "efficiency": {
+          "passed": true,
+          "score": 1.0,
+          "metrics": {
+            "tool_call_count": 3,
+            "duplicate_tool_call_count": 0,
+            "trace_step_count": 8,
+            "avg_tool_latency_ms": 0.0,
+            "max_tool_latency_ms": 0.0,
+            "tool_success_rate": 1.0
+          },
+          "checks": [
+            {
+              "name": "max_tool_calls",
+              "passed": true,
+              "actual": 3,
+              "expected": 3
+            },
+            {
+              "name": "max_duplicate_tool_calls",
+              "passed": true,
+              "actual": 0,
+              "expected": 0
+            },
+            {
+              "name": "max_trace_steps",
+              "passed": true,
+              "actual": 8,
+              "expected": 25
+            },
+            {
+              "name": "max_avg_tool_latency_ms",
+              "passed": true,
+              "actual": 0.0,
+              "expected": 1000
+            }
+          ]
+        },
+        "quality": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "llm_judge": {
+          "passed": true,
+          "score": 1.0,
+          "skipped": true,
+          "reason": "no quality rubric"
+        }
+      },
+      "conversation_route": "investment_task",
+      "required_agents": [
+        "data_collector",
+        "price_volume_analyst"
+      ],
+      "tool_calls": [
+        {
+          "node": "data_collector",
+          "tool": "resolve_instrument_tool",
+          "arguments": {
+            "query": "600519.SH",
+            "market": "cn",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "price_volume_analyst",
+          "tool": "analyze_ohlcv_price_trend_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20240101",
+            "end_date": "20240331",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "price_volume_analyst",
+          "tool": "generate_ohlcv_price_chart_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20240101",
+            "end_date": "20240331",
+            "provider": "auto",
+            "chart_type": "candlestick",
+            "ma_windows": "5,20",
+            "show_volume": true,
+            "indicators": "bollinger,rsi,macd"
+          }
+        }
+      ],
+      "trace": [
+        {
+          "created_at": "2026-06-01T00:09:39.283207+00:00",
+          "event": "research_started",
+          "node": "research_graph",
+          "payload": {
+            "user_query": "Analyze 600519.SH from 2024-01-01 to 2024-03-31 price trend and volatility"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.284206+00:00",
+          "event": "tool_requested",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "arguments": {
+              "query": "600519.SH",
+              "market": "cn",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.284206+00:00",
+          "event": "tool_completed",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.284206+00:00",
+          "event": "tool_requested",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "analyze_ohlcv_price_trend_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20240101",
+              "end_date": "20240331",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.284206+00:00",
+          "event": "tool_completed",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "analyze_ohlcv_price_trend_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.284206+00:00",
+          "event": "tool_requested",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "generate_ohlcv_price_chart_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20240101",
+              "end_date": "20240331",
+              "provider": "auto",
+              "chart_type": "candlestick",
+              "ma_windows": "5,20",
+              "show_volume": true,
+              "indicators": "bollinger,rsi,macd"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.284206+00:00",
+          "event": "tool_completed",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "generate_ohlcv_price_chart_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.284206+00:00",
+          "event": "research_finished",
+          "node": "research_graph",
+          "payload": {}
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "route_general_chat",
+      "category": "route",
+      "benchmark": "l1",
+      "passed": true,
+      "scores": {
+        "route": {
+          "passed": true,
+          "score": 1.0,
+          "expected": "general_answer",
+          "actual": "general_answer"
+        },
+        "task_plan": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [],
+          "task_plan": {}
+        },
+        "trajectory": {
+          "passed": true,
+          "score": 1.0,
+          "expected_agents": [],
+          "actual_agents": [],
+          "missing_agents": [],
+          "forbidden_agents_present": []
+        },
+        "tool_calls": {
+          "passed": true,
+          "score": 1.0,
+          "actual_tools": [],
+          "unexpected_tools": []
+        },
+        "memory": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "rag": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "output_quality": {
+          "passed": true,
+          "score": 1.0,
+          "response": "mock general answer"
+        },
+        "efficiency": {
+          "passed": true,
+          "score": 1.0,
+          "metrics": {
+            "tool_call_count": 0,
+            "duplicate_tool_call_count": 0,
+            "trace_step_count": 2,
+            "avg_tool_latency_ms": 0.0,
+            "max_tool_latency_ms": 0.0,
+            "tool_success_rate": 1.0
+          },
+          "checks": [
+            {
+              "name": "max_tool_calls",
+              "passed": true,
+              "actual": 0,
+              "expected": 0
+            },
+            {
+              "name": "max_trace_steps",
+              "passed": true,
+              "actual": 2,
+              "expected": 8
+            }
+          ]
+        },
+        "quality": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "llm_judge": {
+          "passed": true,
+          "score": 1.0,
+          "skipped": true,
+          "reason": "no quality rubric"
+        }
+      },
+      "conversation_route": "general_answer",
+      "required_agents": [],
+      "tool_calls": [],
+      "trace": [],
+      "warnings": []
+    },
+    {
+      "id": "route_finance_concept",
+      "category": "route",
+      "benchmark": "l1",
+      "passed": true,
+      "scores": {
+        "route": {
+          "passed": true,
+          "score": 1.0,
+          "expected": "general_answer",
+          "actual": "general_answer"
+        },
+        "task_plan": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [],
+          "task_plan": {}
+        },
+        "trajectory": {
+          "passed": true,
+          "score": 1.0,
+          "expected_agents": [],
+          "actual_agents": [],
+          "missing_agents": [],
+          "forbidden_agents_present": []
+        },
+        "tool_calls": {
+          "passed": true,
+          "score": 1.0,
+          "actual_tools": [],
+          "unexpected_tools": []
+        },
+        "memory": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "rag": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "output_quality": {
+          "passed": true,
+          "score": 1.0,
+          "response": "mock general answer"
+        },
+        "efficiency": {
+          "passed": true,
+          "score": 1.0,
+          "metrics": {
+            "tool_call_count": 0,
+            "duplicate_tool_call_count": 0,
+            "trace_step_count": 2,
+            "avg_tool_latency_ms": 0.0,
+            "max_tool_latency_ms": 0.0,
+            "tool_success_rate": 1.0
+          },
+          "checks": [
+            {
+              "name": "max_tool_calls",
+              "passed": true,
+              "actual": 0,
+              "expected": 0
+            },
+            {
+              "name": "max_trace_steps",
+              "passed": true,
+              "actual": 2,
+              "expected": 8
+            }
+          ]
+        },
+        "quality": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "llm_judge": {
+          "passed": true,
+          "score": 1.0,
+          "skipped": true,
+          "reason": "no quality rubric"
+        }
+      },
+      "conversation_route": "general_answer",
+      "required_agents": [],
+      "tool_calls": [],
+      "trace": [],
+      "warnings": []
+    },
+    {
+      "id": "valuation_maotai_report",
+      "category": "valuation",
+      "benchmark": "l1",
+      "passed": true,
+      "scores": {
+        "route": {
+          "passed": true,
+          "score": 1.0,
+          "expected": "investment_task",
+          "actual": "investment_task"
+        },
+        "task_plan": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "action",
+              "passed": true
+            },
+            {
+              "name": "report_type",
+              "passed": true
+            }
+          ],
+          "task_plan": {
+            "action": "execute",
+            "task_type": "valuation_analysis",
+            "target": {
+              "symbols": [
+                "600519.SH"
+              ],
+              "names": [],
+              "industry": null,
+              "market": "cn",
+              "asset_type": "stock"
+            },
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "user_date_range": {
+              "start_date": null,
+              "end_date": null,
+              "explicit": false
+            },
+            "date_ranges": {
+              "valuation": {
+                "start_date": "20260303",
+                "end_date": "20260601"
+              }
+            },
+            "required_agents": [
+              "data_collector",
+              "valuation_analyst",
+              "reviewer",
+              "report_writer"
+            ],
+            "modules": {
+              "data": true,
+              "macro_policy": false,
+              "industry": false,
+              "price_volume": false,
+              "valuation": true,
+              "fundamentals": false,
+              "review": true,
+              "report": true
+            },
+            "agent_tasks": {
+              "data_collector": "Run data_collector",
+              "valuation_analyst": "Run valuation_analyst",
+              "reviewer": "Run reviewer",
+              "report_writer": "Run report_writer"
+            },
+            "tool_needs": {},
+            "needs_tool": true,
+            "needs_clarification": false,
+            "missing_fields": [],
+            "clarifying_question": null,
+            "direct_answer": null,
+            "output_type": "full_report",
+            "report_requirements": {
+              "language": "en",
+              "style": "concise"
+            },
+            "reason": "deterministic eval plan",
+            "report_type": "company_valuation_report"
+          }
+        },
+        "trajectory": {
+          "passed": true,
+          "score": 1.0,
+          "expected_agents": [
+            "data_collector",
+            "report_writer",
+            "reviewer",
+            "valuation_analyst"
+          ],
+          "actual_agents": [
+            "data_collector",
+            "price_volume_analyst",
+            "report_writer",
+            "reviewer",
+            "valuation_analyst"
+          ],
+          "missing_agents": [],
+          "forbidden_agents_present": []
+        },
+        "tool_calls": {
+          "passed": true,
+          "score": 1.0,
+          "expected_tools": [
+            "analyze_ohlcv_price_trend_tool",
+            "analyze_valuation_tool",
+            "generate_ohlcv_price_chart_tool",
+            "resolve_instrument_tool"
+          ],
+          "actual_tools": [
+            "resolve_instrument_tool",
+            "analyze_valuation_tool",
+            "analyze_ohlcv_price_trend_tool",
+            "generate_ohlcv_price_chart_tool",
+            "analyze_valuation_tool"
+          ],
+          "missing_tools": [],
+          "redundant_tools": []
+        },
+        "memory": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "rag": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "output_quality": {
+          "passed": true,
+          "score": 1.0,
+          "missing": [],
+          "must_include_any_passed": true,
+          "response": "mock report: valuation, fundamentals, policy evidence, risks, data limits, and no investment advice."
+        },
+        "efficiency": {
+          "passed": true,
+          "score": 1.0,
+          "metrics": {
+            "tool_call_count": 5,
+            "duplicate_tool_call_count": 1,
+            "trace_step_count": 12,
+            "avg_tool_latency_ms": 0.0,
+            "max_tool_latency_ms": 0.0,
+            "tool_success_rate": 1.0
+          },
+          "checks": [
+            {
+              "name": "max_tool_calls",
+              "passed": true,
+              "actual": 5,
+              "expected": 6
+            },
+            {
+              "name": "max_duplicate_tool_calls",
+              "passed": true,
+              "actual": 1,
+              "expected": 1
+            },
+            {
+              "name": "max_trace_steps",
+              "passed": true,
+              "actual": 12,
+              "expected": 60
+            }
+          ]
+        },
+        "quality": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "llm_judge": {
+          "passed": true,
+          "score": 1.0,
+          "skipped": true,
+          "reason": "no quality rubric"
+        }
+      },
+      "conversation_route": "investment_task",
+      "required_agents": [
+        "data_collector",
+        "valuation_analyst",
+        "reviewer",
+        "report_writer",
+        "price_volume_analyst"
+      ],
+      "tool_calls": [
+        {
+          "node": "data_collector",
+          "tool": "resolve_instrument_tool",
+          "arguments": {
+            "query": "600519.SH",
+            "market": "cn",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "valuation_analyst",
+          "tool": "analyze_valuation_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "price_volume_analyst",
+          "tool": "analyze_ohlcv_price_trend_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "price_volume_analyst",
+          "tool": "generate_ohlcv_price_chart_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "provider": "auto",
+            "chart_type": "candlestick",
+            "ma_windows": "5,20",
+            "show_volume": true,
+            "indicators": "bollinger,rsi,macd"
+          }
+        },
+        {
+          "node": "valuation_analyst",
+          "tool": "analyze_valuation_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "provider": "auto"
+          }
+        }
+      ],
+      "trace": [
+        {
+          "created_at": "2026-06-01T00:09:39.320780+00:00",
+          "event": "research_started",
+          "node": "research_graph",
+          "payload": {
+            "user_query": "Generate a valuation report for 600519.SH using PE and PB"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.321790+00:00",
+          "event": "tool_requested",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "arguments": {
+              "query": "600519.SH",
+              "market": "cn",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.321790+00:00",
+          "event": "tool_completed",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.322789+00:00",
+          "event": "tool_requested",
+          "node": "valuation_analyst",
+          "payload": {
+            "tool": "analyze_valuation_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20260303",
+              "end_date": "20260601",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.322789+00:00",
+          "event": "tool_completed",
+          "node": "valuation_analyst",
+          "payload": {
+            "tool": "analyze_valuation_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.323786+00:00",
+          "event": "tool_requested",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "analyze_ohlcv_price_trend_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20260303",
+              "end_date": "20260601",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.323786+00:00",
+          "event": "tool_completed",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "analyze_ohlcv_price_trend_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.323786+00:00",
+          "event": "tool_requested",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "generate_ohlcv_price_chart_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20260303",
+              "end_date": "20260601",
+              "provider": "auto",
+              "chart_type": "candlestick",
+              "ma_windows": "5,20",
+              "show_volume": true,
+              "indicators": "bollinger,rsi,macd"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.323786+00:00",
+          "event": "tool_completed",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "generate_ohlcv_price_chart_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.323786+00:00",
+          "event": "tool_requested",
+          "node": "valuation_analyst",
+          "payload": {
+            "tool": "analyze_valuation_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20260303",
+              "end_date": "20260601",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.323786+00:00",
+          "event": "tool_completed",
+          "node": "valuation_analyst",
+          "payload": {
+            "tool": "analyze_valuation_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.331518+00:00",
+          "event": "research_finished",
+          "node": "research_graph",
+          "payload": {}
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "l2_macro_policy_rag_integration",
+      "category": "l2_integration",
+      "benchmark": "l2",
+      "passed": true,
+      "scores": {
+        "route": {
+          "passed": true,
+          "score": 1.0,
+          "expected": "investment_task",
+          "actual": "investment_task"
+        },
+        "task_plan": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "action",
+              "passed": true
+            }
+          ],
+          "task_plan": {
+            "action": "execute",
+            "task_type": "macro_research",
+            "target": {
+              "symbols": [],
+              "names": [],
+              "industry": null,
+              "market": "cn",
+              "asset_type": "stock"
+            },
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "user_date_range": {
+              "start_date": null,
+              "end_date": null,
+              "explicit": false
+            },
+            "date_ranges": {
+              "macro_policy": {
+                "start_date": "20260303",
+                "end_date": "20260601"
+              }
+            },
+            "required_agents": [
+              "macro_policy_analyst"
+            ],
+            "modules": {
+              "data": false,
+              "macro_policy": true,
+              "industry": false,
+              "price_volume": false,
+              "valuation": false,
+              "fundamentals": false,
+              "review": false,
+              "report": false
+            },
+            "agent_tasks": {
+              "macro_policy_analyst": "Run macro_policy_analyst"
+            },
+            "tool_needs": {},
+            "needs_tool": true,
+            "needs_clarification": false,
+            "missing_fields": [],
+            "clarifying_question": null,
+            "direct_answer": null,
+            "output_type": "analysis_summary",
+            "report_type": "none",
+            "report_requirements": {
+              "language": "en",
+              "style": "concise"
+            },
+            "reason": "deterministic eval plan"
+          }
+        },
+        "trajectory": {
+          "passed": true,
+          "score": 1.0,
+          "expected_agents": [
+            "macro_policy_analyst"
+          ],
+          "actual_agents": [
+            "macro_policy_analyst"
+          ],
+          "missing_agents": [],
+          "forbidden_agents_present": []
+        },
+        "tool_calls": {
+          "passed": true,
+          "score": 1.0,
+          "actual_tools": [],
+          "unexpected_tools": []
+        },
+        "memory": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "rag": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "min_hits",
+              "passed": true,
+              "actual": 1,
+              "expected": 1
+            },
+            {
+              "name": "source_type",
+              "passed": true,
+              "actual": "macro_policy",
+              "expected": "macro_policy"
+            },
+            {
+              "name": "rag_completed_trace",
+              "passed": true,
+              "actual": 1,
+              "expected": 1
+            }
+          ]
+        },
+        "output_quality": {
+          "passed": true,
+          "score": 1.0,
+          "response": "mock macro_policy_analyst summary\n- mock finding from macro_policy_analyst"
+        },
+        "efficiency": {
+          "passed": true,
+          "score": 1.0,
+          "metrics": {
+            "tool_call_count": 0,
+            "duplicate_tool_call_count": 0,
+            "trace_step_count": 4,
+            "avg_tool_latency_ms": 0.0,
+            "max_tool_latency_ms": 0.0,
+            "tool_success_rate": 1.0
+          },
+          "checks": [
+            {
+              "name": "max_tool_calls",
+              "passed": true,
+              "actual": 0,
+              "expected": 0
+            },
+            {
+              "name": "max_trace_steps",
+              "passed": true,
+              "actual": 4,
+              "expected": 20
+            }
+          ]
+        },
+        "quality": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "llm_judge": {
+          "passed": true,
+          "score": 1.0,
+          "skipped": true,
+          "reason": "no quality rubric"
+        }
+      },
+      "conversation_route": "investment_task",
+      "required_agents": [
+        "macro_policy_analyst"
+      ],
+      "tool_calls": [],
+      "trace": [
+        {
+          "created_at": "2026-06-01T00:09:39.360666+00:00",
+          "event": "research_started",
+          "node": "research_graph",
+          "payload": {
+            "user_query": "Analyze fiscal policy impact on expanding domestic demand"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.361674+00:00",
+          "event": "rag_requested",
+          "node": "macro_policy_analyst",
+          "payload": {
+            "source_type": "macro_policy",
+            "start_year": 2026,
+            "end_year": 2026,
+            "top_k": 6
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.361674+00:00",
+          "event": "rag_completed",
+          "node": "macro_policy_analyst",
+          "payload": {
+            "source_type": "macro_policy",
+            "mode": "bm25",
+            "hit_count": 1
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.362669+00:00",
+          "event": "research_finished",
+          "node": "research_graph",
+          "payload": {}
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "l2_price_volume_tool_integration",
+      "category": "l2_integration",
+      "benchmark": "l2",
+      "passed": true,
+      "scores": {
+        "route": {
+          "passed": true,
+          "score": 1.0,
+          "expected": "investment_task",
+          "actual": "investment_task"
+        },
+        "task_plan": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "action",
+              "passed": true
+            },
+            {
+              "name": "symbol",
+              "passed": true
+            },
+            {
+              "name": "start_date",
+              "passed": true
+            },
+            {
+              "name": "end_date",
+              "passed": true
+            }
+          ],
+          "task_plan": {
+            "action": "execute",
+            "task_type": "price_volume_analysis",
+            "target": {
+              "symbols": [
+                "600519.SH"
+              ],
+              "names": [],
+              "industry": null,
+              "market": "cn",
+              "asset_type": "stock"
+            },
+            "start_date": "20240101",
+            "end_date": "20240131",
+            "user_date_range": {
+              "start_date": "20240101",
+              "end_date": "20240131",
+              "explicit": true
+            },
+            "date_ranges": {
+              "price_volume": {
+                "start_date": "20240101",
+                "end_date": "20240131"
+              }
+            },
+            "required_agents": [
+              "data_collector",
+              "price_volume_analyst"
+            ],
+            "modules": {
+              "data": true,
+              "macro_policy": false,
+              "industry": false,
+              "price_volume": true,
+              "valuation": false,
+              "fundamentals": false,
+              "review": false,
+              "report": false
+            },
+            "agent_tasks": {
+              "data_collector": "Run data_collector",
+              "price_volume_analyst": "Run price_volume_analyst"
+            },
+            "tool_needs": {},
+            "needs_tool": true,
+            "needs_clarification": false,
+            "missing_fields": [],
+            "clarifying_question": null,
+            "direct_answer": null,
+            "output_type": "analysis_summary",
+            "report_requirements": {
+              "language": "en",
+              "style": "concise"
+            },
+            "reason": "deterministic eval plan",
+            "report_type": "none"
+          }
+        },
+        "trajectory": {
+          "passed": true,
+          "score": 1.0,
+          "expected_agents": [
+            "data_collector",
+            "price_volume_analyst"
+          ],
+          "actual_agents": [
+            "data_collector",
+            "price_volume_analyst"
+          ],
+          "missing_agents": [],
+          "forbidden_agents_present": []
+        },
+        "tool_calls": {
+          "passed": true,
+          "score": 1.0,
+          "expected_tools": [
+            "analyze_ohlcv_price_trend_tool",
+            "generate_ohlcv_price_chart_tool",
+            "resolve_instrument_tool"
+          ],
+          "actual_tools": [
+            "resolve_instrument_tool",
+            "analyze_ohlcv_price_trend_tool",
+            "generate_ohlcv_price_chart_tool"
+          ],
+          "missing_tools": [],
+          "redundant_tools": []
+        },
+        "memory": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "rag": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "output_quality": {
+          "passed": true,
+          "score": 1.0,
+          "response": "分析区间：20240101 至 20240131\n\nmock price_volume_analyst summary\n- mock finding from price_volume_analyst"
+        },
+        "efficiency": {
+          "passed": true,
+          "score": 1.0,
+          "metrics": {
+            "tool_call_count": 3,
+            "duplicate_tool_call_count": 0,
+            "trace_step_count": 8,
+            "avg_tool_latency_ms": 0.0,
+            "max_tool_latency_ms": 0.0,
+            "tool_success_rate": 1.0
+          },
+          "checks": [
+            {
+              "name": "max_tool_calls",
+              "passed": true,
+              "actual": 3,
+              "expected": 4
+            },
+            {
+              "name": "max_duplicate_tool_calls",
+              "passed": true,
+              "actual": 0,
+              "expected": 0
+            },
+            {
+              "name": "max_trace_steps",
+              "passed": true,
+              "actual": 8,
+              "expected": 30
+            },
+            {
+              "name": "max_avg_tool_latency_ms",
+              "passed": true,
+              "actual": 0.0,
+              "expected": 1000
+            }
+          ]
+        },
+        "quality": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "llm_judge": {
+          "passed": true,
+          "score": 1.0,
+          "skipped": true,
+          "reason": "no quality rubric"
+        }
+      },
+      "conversation_route": "investment_task",
+      "required_agents": [
+        "data_collector",
+        "price_volume_analyst"
+      ],
+      "tool_calls": [
+        {
+          "node": "data_collector",
+          "tool": "resolve_instrument_tool",
+          "arguments": {
+            "query": "600519.SH",
+            "market": "cn",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "price_volume_analyst",
+          "tool": "analyze_ohlcv_price_trend_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20240101",
+            "end_date": "20240131",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "price_volume_analyst",
+          "tool": "generate_ohlcv_price_chart_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20240101",
+            "end_date": "20240131",
+            "provider": "auto",
+            "chart_type": "candlestick",
+            "ma_windows": "5,20",
+            "show_volume": true,
+            "indicators": "bollinger,rsi,macd"
+          }
+        }
+      ],
+      "trace": [
+        {
+          "created_at": "2026-06-01T00:09:39.388970+00:00",
+          "event": "research_started",
+          "node": "research_graph",
+          "payload": {
+            "user_query": "Analyze 600519.SH from 2024-01-01 to 2024-01-31 price trend"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.392218+00:00",
+          "event": "tool_requested",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "arguments": {
+              "query": "600519.SH",
+              "market": "cn",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.392218+00:00",
+          "event": "tool_completed",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.392566+00:00",
+          "event": "tool_requested",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "analyze_ohlcv_price_trend_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20240101",
+              "end_date": "20240131",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.392566+00:00",
+          "event": "tool_completed",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "analyze_ohlcv_price_trend_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.392566+00:00",
+          "event": "tool_requested",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "generate_ohlcv_price_chart_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20240101",
+              "end_date": "20240131",
+              "provider": "auto",
+              "chart_type": "candlestick",
+              "ma_windows": "5,20",
+              "show_volume": true,
+              "indicators": "bollinger,rsi,macd"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.392566+00:00",
+          "event": "tool_completed",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "generate_ohlcv_price_chart_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.393299+00:00",
+          "event": "research_finished",
+          "node": "research_graph",
+          "payload": {}
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "l3_company_valuation_report_quality",
+      "category": "l3_quality",
+      "benchmark": "l3",
+      "passed": true,
+      "scores": {
+        "route": {
+          "passed": true,
+          "score": 1.0,
+          "expected": "investment_task",
+          "actual": "investment_task"
+        },
+        "task_plan": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "action",
+              "passed": true
+            },
+            {
+              "name": "report_type",
+              "passed": true
+            }
+          ],
+          "task_plan": {
+            "action": "execute",
+            "task_type": "valuation_analysis",
+            "target": {
+              "symbols": [
+                "600519.SH"
+              ],
+              "names": [],
+              "industry": null,
+              "market": "cn",
+              "asset_type": "stock"
+            },
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "user_date_range": {
+              "start_date": null,
+              "end_date": null,
+              "explicit": false
+            },
+            "date_ranges": {
+              "valuation": {
+                "start_date": "20260303",
+                "end_date": "20260601"
+              }
+            },
+            "required_agents": [
+              "data_collector",
+              "valuation_analyst",
+              "reviewer",
+              "report_writer"
+            ],
+            "modules": {
+              "data": true,
+              "macro_policy": false,
+              "industry": false,
+              "price_volume": false,
+              "valuation": true,
+              "fundamentals": false,
+              "review": true,
+              "report": true
+            },
+            "agent_tasks": {
+              "data_collector": "Run data_collector",
+              "valuation_analyst": "Run valuation_analyst",
+              "reviewer": "Run reviewer",
+              "report_writer": "Run report_writer"
+            },
+            "tool_needs": {},
+            "needs_tool": true,
+            "needs_clarification": false,
+            "missing_fields": [],
+            "clarifying_question": null,
+            "direct_answer": null,
+            "output_type": "full_report",
+            "report_requirements": {
+              "language": "en",
+              "style": "concise"
+            },
+            "reason": "deterministic eval plan",
+            "report_type": "company_valuation_report"
+          }
+        },
+        "trajectory": {
+          "passed": true,
+          "score": 1.0,
+          "expected_agents": [
+            "data_collector",
+            "report_writer",
+            "reviewer",
+            "valuation_analyst"
+          ],
+          "actual_agents": [
+            "data_collector",
+            "price_volume_analyst",
+            "report_writer",
+            "reviewer",
+            "valuation_analyst"
+          ],
+          "missing_agents": [],
+          "forbidden_agents_present": []
+        },
+        "tool_calls": {
+          "passed": true,
+          "score": 1.0,
+          "expected_tools": [
+            "analyze_valuation_tool",
+            "resolve_instrument_tool"
+          ],
+          "actual_tools": [
+            "resolve_instrument_tool",
+            "analyze_valuation_tool",
+            "analyze_ohlcv_price_trend_tool",
+            "generate_ohlcv_price_chart_tool",
+            "analyze_valuation_tool"
+          ],
+          "missing_tools": [],
+          "redundant_tools": [
+            "analyze_ohlcv_price_trend_tool",
+            "generate_ohlcv_price_chart_tool"
+          ]
+        },
+        "memory": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "rag": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "output_quality": {
+          "passed": true,
+          "score": 1.0,
+          "response": "mock report: valuation, fundamentals, policy evidence, risks, data limits, and no investment advice."
+        },
+        "efficiency": {
+          "passed": true,
+          "score": 1.0,
+          "metrics": {
+            "tool_call_count": 5,
+            "duplicate_tool_call_count": 1,
+            "trace_step_count": 12,
+            "avg_tool_latency_ms": 0.0,
+            "max_tool_latency_ms": 0.0,
+            "tool_success_rate": 1.0
+          },
+          "checks": [
+            {
+              "name": "max_tool_calls",
+              "passed": true,
+              "actual": 5,
+              "expected": 8
+            },
+            {
+              "name": "max_duplicate_tool_calls",
+              "passed": true,
+              "actual": 1,
+              "expected": 1
+            },
+            {
+              "name": "max_trace_steps",
+              "passed": true,
+              "actual": 12,
+              "expected": 60
+            }
+          ]
+        },
+        "quality": {
+          "passed": true,
+          "score": 1.0,
+          "min_overall": 0.75,
+          "checks": [
+            {
+              "name": "must_include:valuation",
+              "passed": true,
+              "expected": "valuation"
+            },
+            {
+              "name": "must_include:risks",
+              "passed": true,
+              "expected": "risks"
+            },
+            {
+              "name": "must_include:data limits",
+              "passed": true,
+              "expected": "data limits"
+            },
+            {
+              "name": "must_include_any",
+              "passed": true,
+              "expected": [
+                "no investment advice",
+                "not investment advice"
+              ]
+            },
+            {
+              "name": "structure",
+              "passed": true,
+              "expected": true
+            },
+            {
+              "name": "risk_awareness",
+              "passed": true,
+              "expected": true
+            },
+            {
+              "name": "data_limits",
+              "passed": true,
+              "expected": true
+            },
+            {
+              "name": "safety",
+              "passed": true,
+              "expected": true
+            }
+          ]
+        },
+        "llm_judge": {
+          "passed": true,
+          "score": 1.0,
+          "skipped": true,
+          "reason": "llm judge disabled"
+        }
+      },
+      "conversation_route": "investment_task",
+      "required_agents": [
+        "data_collector",
+        "valuation_analyst",
+        "reviewer",
+        "report_writer",
+        "price_volume_analyst"
+      ],
+      "tool_calls": [
+        {
+          "node": "data_collector",
+          "tool": "resolve_instrument_tool",
+          "arguments": {
+            "query": "600519.SH",
+            "market": "cn",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "valuation_analyst",
+          "tool": "analyze_valuation_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "price_volume_analyst",
+          "tool": "analyze_ohlcv_price_trend_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "price_volume_analyst",
+          "tool": "generate_ohlcv_price_chart_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "provider": "auto",
+            "chart_type": "candlestick",
+            "ma_windows": "5,20",
+            "show_volume": true,
+            "indicators": "bollinger,rsi,macd"
+          }
+        },
+        {
+          "node": "valuation_analyst",
+          "tool": "analyze_valuation_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "provider": "auto"
+          }
+        }
+      ],
+      "trace": [
+        {
+          "created_at": "2026-06-01T00:09:39.425794+00:00",
+          "event": "research_started",
+          "node": "research_graph",
+          "payload": {
+            "user_query": "Generate a valuation report for 600519.SH using PE and PB, including risks and data limits"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.425794+00:00",
+          "event": "tool_requested",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "arguments": {
+              "query": "600519.SH",
+              "market": "cn",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.425794+00:00",
+          "event": "tool_completed",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.425794+00:00",
+          "event": "tool_requested",
+          "node": "valuation_analyst",
+          "payload": {
+            "tool": "analyze_valuation_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20260303",
+              "end_date": "20260601",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.425794+00:00",
+          "event": "tool_completed",
+          "node": "valuation_analyst",
+          "payload": {
+            "tool": "analyze_valuation_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.441352+00:00",
+          "event": "tool_requested",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "analyze_ohlcv_price_trend_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20260303",
+              "end_date": "20260601",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.441352+00:00",
+          "event": "tool_completed",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "analyze_ohlcv_price_trend_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.441352+00:00",
+          "event": "tool_requested",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "generate_ohlcv_price_chart_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20260303",
+              "end_date": "20260601",
+              "provider": "auto",
+              "chart_type": "candlestick",
+              "ma_windows": "5,20",
+              "show_volume": true,
+              "indicators": "bollinger,rsi,macd"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.441352+00:00",
+          "event": "tool_completed",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "generate_ohlcv_price_chart_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.441977+00:00",
+          "event": "tool_requested",
+          "node": "valuation_analyst",
+          "payload": {
+            "tool": "analyze_valuation_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20260303",
+              "end_date": "20260601",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.441977+00:00",
+          "event": "tool_completed",
+          "node": "valuation_analyst",
+          "payload": {
+            "tool": "analyze_valuation_tool",
+            "success": true,
+            "elapsed_ms": 0.0,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.445831+00:00",
+          "event": "research_finished",
+          "node": "research_graph",
+          "payload": {}
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "l3_macro_research_report_quality",
+      "category": "l3_quality",
+      "benchmark": "l3",
+      "passed": true,
+      "scores": {
+        "route": {
+          "passed": true,
+          "score": 1.0,
+          "expected": "investment_task",
+          "actual": "investment_task"
+        },
+        "task_plan": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "action",
+              "passed": true
+            },
+            {
+              "name": "report_type",
+              "passed": true
+            }
+          ],
+          "task_plan": {
+            "action": "execute",
+            "task_type": "macro_research",
+            "target": {
+              "symbols": [],
+              "names": [],
+              "industry": null,
+              "market": "cn",
+              "asset_type": "stock"
+            },
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "user_date_range": {
+              "start_date": null,
+              "end_date": null,
+              "explicit": false
+            },
+            "date_ranges": {
+              "macro_policy": {
+                "start_date": "20260303",
+                "end_date": "20260601"
+              }
+            },
+            "required_agents": [
+              "macro_policy_analyst",
+              "reviewer",
+              "report_writer"
+            ],
+            "modules": {
+              "data": false,
+              "macro_policy": true,
+              "industry": false,
+              "price_volume": false,
+              "valuation": false,
+              "fundamentals": false,
+              "review": true,
+              "report": true
+            },
+            "agent_tasks": {
+              "macro_policy_analyst": "Run macro_policy_analyst",
+              "reviewer": "Run reviewer",
+              "report_writer": "Run report_writer"
+            },
+            "tool_needs": {},
+            "needs_tool": true,
+            "needs_clarification": false,
+            "missing_fields": [],
+            "clarifying_question": null,
+            "direct_answer": null,
+            "output_type": "full_report",
+            "report_type": "macro_research_report",
+            "report_requirements": {
+              "language": "en",
+              "style": "concise"
+            },
+            "reason": "deterministic eval plan"
+          }
+        },
+        "trajectory": {
+          "passed": true,
+          "score": 1.0,
+          "expected_agents": [
+            "macro_policy_analyst",
+            "report_writer",
+            "reviewer"
+          ],
+          "actual_agents": [
+            "macro_policy_analyst",
+            "report_writer",
+            "reviewer"
+          ],
+          "missing_agents": [],
+          "forbidden_agents_present": []
+        },
+        "tool_calls": {
+          "passed": true,
+          "score": 1.0,
+          "actual_tools": [],
+          "unexpected_tools": []
+        },
+        "memory": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "rag": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "min_hits",
+              "passed": true,
+              "actual": 1,
+              "expected": 1
+            },
+            {
+              "name": "source_type",
+              "passed": true,
+              "actual": "macro_policy",
+              "expected": "macro_policy"
+            },
+            {
+              "name": "rag_completed_trace",
+              "passed": true,
+              "actual": 1,
+              "expected": 1
+            }
+          ]
+        },
+        "output_quality": {
+          "passed": true,
+          "score": 1.0,
+          "response": "mock report: valuation, fundamentals, policy evidence, risks, data limits, and no investment advice."
+        },
+        "efficiency": {
+          "passed": true,
+          "score": 1.0,
+          "metrics": {
+            "tool_call_count": 0,
+            "duplicate_tool_call_count": 0,
+            "trace_step_count": 4,
+            "avg_tool_latency_ms": 0.0,
+            "max_tool_latency_ms": 0.0,
+            "tool_success_rate": 1.0
+          },
+          "checks": [
+            {
+              "name": "max_tool_calls",
+              "passed": true,
+              "actual": 0,
+              "expected": 0
+            },
+            {
+              "name": "max_trace_steps",
+              "passed": true,
+              "actual": 4,
+              "expected": 50
+            }
+          ]
+        },
+        "quality": {
+          "passed": true,
+          "score": 1.0,
+          "min_overall": 0.75,
+          "checks": [
+            {
+              "name": "must_include:policy",
+              "passed": true,
+              "expected": "policy"
+            },
+            {
+              "name": "must_include:evidence",
+              "passed": true,
+              "expected": "evidence"
+            },
+            {
+              "name": "must_include:risks",
+              "passed": true,
+              "expected": "risks"
+            },
+            {
+              "name": "must_include_any",
+              "passed": true,
+              "expected": [
+                "data limits",
+                "limitations"
+              ]
+            },
+            {
+              "name": "structure",
+              "passed": true,
+              "expected": true
+            },
+            {
+              "name": "risk_awareness",
+              "passed": true,
+              "expected": true
+            },
+            {
+              "name": "data_limits",
+              "passed": true,
+              "expected": true
+            },
+            {
+              "name": "safety",
+              "passed": true,
+              "expected": true
+            }
+          ]
+        },
+        "llm_judge": {
+          "passed": true,
+          "score": 1.0,
+          "skipped": true,
+          "reason": "llm judge disabled"
+        }
+      },
+      "conversation_route": "investment_task",
+      "required_agents": [
+        "macro_policy_analyst",
+        "reviewer",
+        "report_writer"
+      ],
+      "tool_calls": [],
+      "trace": [
+        {
+          "created_at": "2026-06-01T00:09:39.475415+00:00",
+          "event": "research_started",
+          "node": "research_graph",
+          "payload": {
+            "user_query": "Analyze fiscal policy impact on expanding domestic demand and generate a macro research report with evidence and risks"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.476421+00:00",
+          "event": "rag_requested",
+          "node": "macro_policy_analyst",
+          "payload": {
+            "source_type": "macro_policy",
+            "start_year": 2026,
+            "end_year": 2026,
+            "top_k": 6
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.476421+00:00",
+          "event": "rag_completed",
+          "node": "macro_policy_analyst",
+          "payload": {
+            "source_type": "macro_policy",
+            "mode": "bm25",
+            "hit_count": 1
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:39.477715+00:00",
+          "event": "research_finished",
+          "node": "research_graph",
+          "payload": {}
+        }
+      ],
+      "warnings": []
+    }
+  ]
+}

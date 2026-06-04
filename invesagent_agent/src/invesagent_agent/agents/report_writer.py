@@ -156,6 +156,7 @@ def _build_company_report_context(state: ResearchState) -> dict[str, Any]:
             "data_limits": industry_package.get("analysis", {}).get("data_limits", []),
         },
         "macro_policy_analysis": state.get("macro_policy_analysis", {}),
+        "news_analysis": state.get("news_analysis", {}),
         "charts": _symbol_charts(state, symbol),
         "warnings": list(state.get("warnings", [])),
         "data_sources": ["InvesAgent MCP 工具", "MCP 结果中注明的 Tushare / AKShare 数据"],
@@ -172,6 +173,7 @@ def _build_generic_report_context(state: ResearchState, warnings: list[str]) -> 
         "report_review": state.get("report_review", {}),
         "industry_analysis": state.get("industry_analysis", {}),
         "macro_policy_analysis": state.get("macro_policy_analysis", {}),
+        "news_analysis": state.get("news_analysis", {}),
         "price_volume_analysis": state.get("price_volume_analysis", {}),
         "valuation_analysis": state.get("valuation_analysis", {}),
         "fundamental_analysis": state.get("fundamental_analysis", {}),
@@ -276,6 +278,15 @@ def _fallback_report(context: dict[str, Any]) -> str:
                 "",
                 "## 公司与行业背景",
                 f"- {context.get('industry_background', {}).get('analysis', {}).get('summary', '不可用')}",
+                "",
+            ]
+        )
+    news_analysis = context.get("news_analysis", {}).get("analysis", {})
+    if news_analysis:
+        lines.extend(
+            [
+                "## 新闻与事件",
+                f"- {news_analysis.get('summary', '不可用')}",
                 "",
             ]
         )

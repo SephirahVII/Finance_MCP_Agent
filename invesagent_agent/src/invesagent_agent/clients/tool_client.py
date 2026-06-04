@@ -18,8 +18,24 @@ class StdioMCPToolClient:
     """ToolClient backed by the local stdio MCP client."""
 
     mcp_client: InvesAgentMCPClient = field(default_factory=InvesAgentMCPClient)
+    persistent: bool = False
+
+    def open(self) -> None:
+        self.mcp_client.open()
+
+    def close(self) -> None:
+        self.mcp_client.close()
+
+    def __enter__(self) -> "StdioMCPToolClient":
+        self.open()
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        self.close()
 
     def call_tool(self, name: str, arguments: dict[str, Any] | None = None) -> Any:
+        if self.persistent:
+            self.open()
         return self.mcp_client.call_tool(name, arguments or {})
 
 

@@ -56,6 +56,7 @@ class PriceTrendAnalysisResult:
     message: str | None = None
     warnings: list[str] = field(default_factory=list)
     raw: dict | None = None
+    quality: dict | None = None
 
     def to_dict(self) -> dict:
         data = asdict(self)

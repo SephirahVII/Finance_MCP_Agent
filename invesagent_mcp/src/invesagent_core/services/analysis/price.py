@@ -54,6 +54,7 @@ def analyze_ohlcv_price_trend_from_result(
             message=market_data.message,
             warnings=market_data.warnings,
             raw=market_data.raw,
+            quality=market_data.quality,
         )
 
     df = _records_to_df(market_data.records)
@@ -77,6 +78,7 @@ def analyze_ohlcv_price_trend_from_result(
     max_up_day, max_down_day = calc_extreme_return_days(df)
 
     warnings: list[str] = []
+    warnings.extend(market_data.warnings)
     if len(df) < 60:
         warnings.append("Trading days fewer than 60; MA60 is unavailable or less meaningful.")
 
@@ -129,6 +131,7 @@ def analyze_ohlcv_price_trend_from_result(
         max_up=max_up,
         max_down=max_down,
         warnings=warnings,
+        quality=market_data.quality,
     )
 
 

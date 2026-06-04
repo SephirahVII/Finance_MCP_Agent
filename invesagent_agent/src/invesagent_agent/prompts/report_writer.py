@@ -8,6 +8,7 @@ REPORT_WRITER_PROMPT = """
 1. 只使用输入中出现的数据和结论，不得编造事实。
 2. 根据 report_context 中实际存在且与 report_type 相关的数据选择章节；不要强行写不存在的行业、基本面、估值或图表章节。
    如果 report_context 包含 macro_policy_analysis，宏观/政策结论必须引用其中的 RAG 检索证据。
+   如果 report_context 包含 news_analysis，新闻/事件结论必须引用其中的 citations 或 key_events。
 3. 对缺失数据、工具失败、样本不足和未接入的数据源要明确写入“数据限制与风险提示”。
 4. 不得给出买入、卖出、持有、目标价、评级等直接投资建议。
 5. 语言要简洁、专业，避免夸张判断。

@@ -1,0 +1,1042 @@
+{
+  "summary": {
+    "total": 2,
+    "passed": 0,
+    "failed": 2,
+    "pass_rate": 0.0,
+    "by_category": {
+      "l3_quality": {
+        "total": 2,
+        "passed": 0,
+        "failed": 2
+      }
+    },
+    "by_benchmark": {
+      "l3": {
+        "total": 2,
+        "passed": 0,
+        "failed": 2,
+        "pass_rate": 0.0
+      }
+    },
+    "metrics": {
+      "efficiency": 1.0,
+      "llm_judge": 0.825,
+      "memory": 1.0,
+      "output_quality": 1.0,
+      "quality": 0.0625,
+      "rag": 1.0,
+      "route": 1.0,
+      "task_plan": 1.0,
+      "tool_calls": 1.0,
+      "trajectory": 1.0
+    }
+  },
+  "results": [
+    {
+      "id": "l3_company_valuation_report_quality",
+      "category": "l3_quality",
+      "benchmark": "l3",
+      "passed": false,
+      "scores": {
+        "route": {
+          "passed": true,
+          "score": 1.0,
+          "expected": "investment_task",
+          "actual": "investment_task"
+        },
+        "task_plan": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "action",
+              "passed": true
+            },
+            {
+              "name": "report_type",
+              "passed": true
+            }
+          ],
+          "task_plan": {
+            "action": "execute",
+            "task_type": "valuation_analysis",
+            "target": {
+              "symbols": [
+                "600519.SH"
+              ],
+              "names": [],
+              "industry": null,
+              "market": "cn",
+              "asset_type": "stock"
+            },
+            "start_date": "20250601",
+            "end_date": "20260601",
+            "user_date_range": {
+              "start_date": null,
+              "end_date": null,
+              "explicit": false
+            },
+            "date_ranges": {
+              "valuation": {
+                "start_date": "20250601",
+                "end_date": "20260601"
+              }
+            },
+            "required_agents": [
+              "data_collector",
+              "valuation_analyst",
+              "reviewer",
+              "report_writer"
+            ],
+            "modules": {
+              "data": true,
+              "macro_policy": false,
+              "industry": false,
+              "price_volume": false,
+              "valuation": true,
+              "fundamentals": false,
+              "review": true,
+              "report": true
+            },
+            "agent_tasks": {
+              "data_collector": "解析并确认标的600519.SH的基础信息，包括名称、行业、市场等，供后续估值分析师使用。",
+              "valuation_analyst": "使用PE和PB等估值指标对600519.SH进行估值分析，并识别风险和数据限制，输出估值结果和风险提示。",
+              "report_writer": "基于valuation_analyst的输出，生成完整的估值报告，包含PE、PB分析、风险和数据限制说明。",
+              "reviewer": "审核valuation_analyst和report_writer的产出，确保内容准确、逻辑清晰，符合估值报告要求。"
+            },
+            "tool_needs": {
+              "data_collector": [
+                "resolve_instrument_tool"
+              ],
+              "valuation_analyst": [
+                "get_valuation_metrics_tool"
+              ],
+              "reviewer": [],
+              "report_writer": []
+            },
+            "needs_tool": true,
+            "needs_clarification": false,
+            "missing_fields": [],
+            "clarifying_question": null,
+            "direct_answer": null,
+            "output_type": "full_report",
+            "report_requirements": {
+              "language": "zh-CN",
+              "style": "专业、克制、可审计",
+              "length": "标准报告长度"
+            },
+            "reason": "用户明确要求'Generate a valuation report for 600519.SH using PE and PB, including risks and data limits'，属于估值分析任务且要求输出完整报告。因此选择output_type=full_report，report_type=company_valuation_report。需要data_collector解析标的，valuation_analyst进行PE/PB估值和风险识别，reviewer审核，report_writer生成报告。用户未指定时间范围，默认使用最近1年（20250601至20260601）作为估值数据窗口。无需行业、价格、基本面或宏观模块。",
+            "report_type": "company_valuation_report",
+            "_llm": {
+              "provider": "deepseek",
+              "model": "deepseek-v4-flash",
+              "usage": {
+                "created_at": "2026-06-01T00:06:14.018244+00:00",
+                "provider": "deepseek",
+                "model": "deepseek-v4-flash",
+                "prompt_cache_key": null,
+                "prompt_cache_supported": false,
+                "input_tokens": 3157,
+                "output_tokens": 1230,
+                "total_tokens": 4387,
+                "cached_tokens": 2560,
+                "cache_miss_tokens": 597,
+                "cache_hit": true
+              }
+            }
+          }
+        },
+        "trajectory": {
+          "passed": true,
+          "score": 1.0,
+          "expected_agents": [
+            "data_collector",
+            "report_writer",
+            "reviewer",
+            "valuation_analyst"
+          ],
+          "actual_agents": [
+            "data_collector",
+            "price_volume_analyst",
+            "report_writer",
+            "reviewer",
+            "valuation_analyst"
+          ],
+          "missing_agents": [],
+          "forbidden_agents_present": []
+        },
+        "tool_calls": {
+          "passed": true,
+          "score": 1.0,
+          "expected_tools": [
+            "analyze_valuation_tool",
+            "resolve_instrument_tool"
+          ],
+          "actual_tools": [
+            "resolve_instrument_tool",
+            "analyze_valuation_tool",
+            "analyze_ohlcv_price_trend_tool",
+            "generate_ohlcv_price_chart_tool",
+            "analyze_valuation_tool"
+          ],
+          "missing_tools": [],
+          "redundant_tools": [
+            "analyze_ohlcv_price_trend_tool",
+            "generate_ohlcv_price_chart_tool"
+          ]
+        },
+        "memory": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "rag": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "output_quality": {
+          "passed": true,
+          "score": 1.0,
+          "response": "好的，遵照您的指示。以下是根据提供的上下文数据，生成的贵州茅台（600519.SH）估值报告。\n\n***\n\n## 贵州茅台（600519.SH）估值分析报告\n\n**报告日期：** 2026-06-01\n**分析周期：** 估值指标采用近一年数据（2025-06-01 至 2026-06-01）；量价数据采用近三个月数据（2026-03-03 至 2026-06-01）。\n\n### 1. 估值范围与数据基础\n\n本报告基于历史估值指标（PE/PB）百分位对贵州茅台进行相对估值分析。核心数据来源、对应的时间窗口及主要产出如下表所示：\n\n| 数据类别 | 数据来源 | 分析时间窗口 | 关键输出指标 "
+        },
+        "efficiency": {
+          "passed": true,
+          "score": 1.0,
+          "metrics": {
+            "tool_call_count": 5,
+            "duplicate_tool_call_count": 1,
+            "trace_step_count": 26,
+            "avg_tool_latency_ms": 295.84,
+            "max_tool_latency_ms": 769.49,
+            "tool_success_rate": 0.8
+          },
+          "checks": [
+            {
+              "name": "max_tool_calls",
+              "passed": true,
+              "actual": 5,
+              "expected": 8
+            },
+            {
+              "name": "max_duplicate_tool_calls",
+              "passed": true,
+              "actual": 1,
+              "expected": 1
+            },
+            {
+              "name": "max_trace_steps",
+              "passed": true,
+              "actual": 26,
+              "expected": 60
+            }
+          ]
+        },
+        "quality": {
+          "passed": false,
+          "score": 0.125,
+          "min_overall": 0.75,
+          "checks": [
+            {
+              "name": "must_include:valuation",
+              "passed": true,
+              "expected": "valuation"
+            },
+            {
+              "name": "must_include:risks",
+              "passed": false,
+              "expected": "risks"
+            },
+            {
+              "name": "must_include:data limits",
+              "passed": false,
+              "expected": "data limits"
+            },
+            {
+              "name": "must_include_any",
+              "passed": false,
+              "expected": [
+                "no investment advice",
+                "not investment advice"
+              ]
+            },
+            {
+              "name": "structure",
+              "passed": false,
+              "expected": true
+            },
+            {
+              "name": "risk_awareness",
+              "passed": false,
+              "expected": true
+            },
+            {
+              "name": "data_limits",
+              "passed": false,
+              "expected": true
+            },
+            {
+              "name": "safety",
+              "passed": false,
+              "expected": true
+            }
+          ]
+        },
+        "llm_judge": {
+          "passed": true,
+          "score": 0.85,
+          "min_overall": 0.75,
+          "judge_result": {
+            "factual_consistency": 0.95,
+            "financial_professionalism": 0.8,
+            "evidence_grounding": 0.9,
+            "structure": 1.0,
+            "risk_awareness": 1.0,
+            "readability": 1.0,
+            "overall": 0.85,
+            "issues": [],
+            "_llm": {
+              "provider": "deepseek",
+              "model": "deepseek-v4-flash",
+              "usage": {
+                "created_at": "2026-06-01T00:07:28.440369+00:00",
+                "provider": "deepseek",
+                "model": "deepseek-v4-flash",
+                "prompt_cache_key": null,
+                "prompt_cache_supported": false,
+                "input_tokens": 3474,
+                "output_tokens": 1238,
+                "total_tokens": 4712,
+                "cached_tokens": 0,
+                "cache_miss_tokens": 3474,
+                "cache_hit": false
+              }
+            }
+          }
+        }
+      },
+      "conversation_route": "investment_task",
+      "required_agents": [
+        "data_collector",
+        "valuation_analyst",
+        "reviewer",
+        "report_writer",
+        "price_volume_analyst"
+      ],
+      "tool_calls": [
+        {
+          "node": "data_collector",
+          "tool": "resolve_instrument_tool",
+          "arguments": {
+            "query": "600519.SH",
+            "market": "cn",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "valuation_analyst",
+          "tool": "analyze_valuation_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20250601",
+            "end_date": "20260601",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "price_volume_analyst",
+          "tool": "analyze_ohlcv_price_trend_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "price_volume_analyst",
+          "tool": "generate_ohlcv_price_chart_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20260303",
+            "end_date": "20260601",
+            "provider": "auto",
+            "chart_type": "candlestick",
+            "ma_windows": "5,20",
+            "show_volume": true,
+            "indicators": "bollinger,rsi,macd"
+          }
+        },
+        {
+          "node": "valuation_analyst",
+          "tool": "analyze_valuation_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20250601",
+            "end_date": "20260601",
+            "provider": "auto"
+          }
+        }
+      ],
+      "trace": [
+        {
+          "created_at": "2026-06-01T00:06:03.893780+00:00",
+          "event": "research_started",
+          "node": "research_graph",
+          "payload": {
+            "user_query": "Generate a valuation report for 600519.SH using PE and PB, including risks and data limits"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:05.581517+00:00",
+          "event": "llm_requested",
+          "node": "investment_task_manager",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:14.020249+00:00",
+          "event": "llm_completed",
+          "node": "investment_task_manager",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:14.021249+00:00",
+          "event": "tool_requested",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "arguments": {
+              "query": "600519.SH",
+              "market": "cn",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:14.024252+00:00",
+          "event": "tool_completed",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "success": null,
+            "elapsed_ms": 3.78,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:14.025249+00:00",
+          "event": "tool_requested",
+          "node": "valuation_analyst",
+          "payload": {
+            "tool": "analyze_valuation_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20250601",
+              "end_date": "20260601",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:14.793103+00:00",
+          "event": "tool_completed",
+          "node": "valuation_analyst",
+          "payload": {
+            "tool": "analyze_valuation_tool",
+            "success": true,
+            "elapsed_ms": 769.49,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:14.793103+00:00",
+          "event": "llm_requested",
+          "node": "valuation_analyst",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:25.778729+00:00",
+          "event": "llm_completed",
+          "node": "valuation_analyst",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:25.779249+00:00",
+          "event": "llm_requested",
+          "node": "reviewer",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:31.921444+00:00",
+          "event": "llm_completed",
+          "node": "reviewer",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:31.923077+00:00",
+          "event": "tool_requested",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "analyze_ohlcv_price_trend_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20260303",
+              "end_date": "20260601",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:31.992519+00:00",
+          "event": "tool_completed",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "analyze_ohlcv_price_trend_tool",
+            "success": true,
+            "elapsed_ms": 73.31,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:31.992519+00:00",
+          "event": "tool_requested",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "generate_ohlcv_price_chart_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20260303",
+              "end_date": "20260601",
+              "provider": "auto",
+              "chart_type": "candlestick",
+              "ma_windows": "5,20",
+              "show_volume": true,
+              "indicators": "bollinger,rsi,macd"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:32.587045+00:00",
+          "event": "tool_completed",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "generate_ohlcv_price_chart_tool",
+            "success": true,
+            "elapsed_ms": 591.23,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:32.587045+00:00",
+          "event": "llm_requested",
+          "node": "price_volume_analyst",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:40.234315+00:00",
+          "event": "llm_completed",
+          "node": "price_volume_analyst",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:40.235318+00:00",
+          "event": "tool_requested",
+          "node": "valuation_analyst",
+          "payload": {
+            "tool": "analyze_valuation_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20250601",
+              "end_date": "20260601",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:40.276229+00:00",
+          "event": "tool_completed",
+          "node": "valuation_analyst",
+          "payload": {
+            "tool": "analyze_valuation_tool",
+            "success": true,
+            "elapsed_ms": 41.39,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:40.276229+00:00",
+          "event": "llm_requested",
+          "node": "valuation_analyst",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:47.939855+00:00",
+          "event": "llm_completed",
+          "node": "valuation_analyst",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:06:47.939855+00:00",
+          "event": "llm_requested",
+          "node": "reviewer",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:07:01.412128+00:00",
+          "event": "llm_completed",
+          "node": "reviewer",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:07:01.414128+00:00",
+          "event": "llm_requested",
+          "node": "report_writer",
+          "payload": {
+            "format": "text"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:07:18.126837+00:00",
+          "event": "llm_completed",
+          "node": "report_writer",
+          "payload": {
+            "format": "text"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:07:18.128848+00:00",
+          "event": "research_finished",
+          "node": "research_graph",
+          "payload": {}
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "l3_macro_research_report_quality",
+      "category": "l3_quality",
+      "benchmark": "l3",
+      "passed": false,
+      "scores": {
+        "route": {
+          "passed": true,
+          "score": 1.0,
+          "expected": "investment_task",
+          "actual": "investment_task"
+        },
+        "task_plan": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "action",
+              "passed": true
+            },
+            {
+              "name": "report_type",
+              "passed": true
+            }
+          ],
+          "task_plan": {
+            "action": "execute",
+            "task_type": "macro_research",
+            "target": {
+              "symbols": [],
+              "names": [],
+              "industry": null,
+              "market": "cn",
+              "asset_type": "stock"
+            },
+            "start_date": "20210101",
+            "end_date": "20260601",
+            "user_date_range": {
+              "start_date": null,
+              "end_date": null,
+              "explicit": false
+            },
+            "date_ranges": {
+              "macro_policy": {
+                "start_date": "20210101",
+                "end_date": "20260601"
+              }
+            },
+            "required_agents": [
+              "macro_policy_analyst",
+              "reviewer",
+              "report_writer"
+            ],
+            "modules": {
+              "data": false,
+              "macro_policy": true,
+              "industry": false,
+              "price_volume": false,
+              "valuation": false,
+              "fundamentals": false,
+              "review": true,
+              "report": true
+            },
+            "agent_tasks": {
+              "macro_policy_analyst": "使用 RagRetriever 检索与分析中国近年财政政策及其对扩大内需（消费、投资、政府支出等）的影响，总结政策效果、证据和潜在风险。",
+              "reviewer": "审阅宏观政策分析 Agent 的产出，确保证据充分、逻辑严谨、风险识别合理。",
+              "report_writer": "基于政策分析结果生成一份完整的宏观研究报告，涵盖政策背景、传导机制、实证证据、风险评估与展望。"
+            },
+            "tool_needs": {
+              "macro_policy_analyst": [
+                "RagRetriever.retrieve_policy"
+              ]
+            },
+            "needs_tool": true,
+            "needs_clarification": false,
+            "missing_fields": [],
+            "clarifying_question": null,
+            "direct_answer": null,
+            "output_type": "full_report",
+            "report_type": "macro_research_report",
+            "report_requirements": {
+              "language": "zh-CN",
+              "style": "专业、克制、证据可追溯",
+              "length": "根据任务复杂度决定"
+            },
+            "reason": "用户明确要求生成宏观研究报告，分析财政政策对扩大内需的影响，需要依托检索工具获取政策证据，经审阅后输出完整报告，因此使用 macro_policy_analyst、reviewer 和 report_writer，时间范围采用默认的近年跨度。",
+            "_llm": {
+              "provider": "deepseek",
+              "model": "deepseek-v4-flash",
+              "usage": {
+                "created_at": "2026-06-01T00:07:41.889379+00:00",
+                "provider": "deepseek",
+                "model": "deepseek-v4-flash",
+                "prompt_cache_key": null,
+                "prompt_cache_supported": false,
+                "input_tokens": 3218,
+                "output_tokens": 1023,
+                "total_tokens": 4241,
+                "cached_tokens": 2560,
+                "cache_miss_tokens": 658,
+                "cache_hit": true
+              }
+            }
+          }
+        },
+        "trajectory": {
+          "passed": true,
+          "score": 1.0,
+          "expected_agents": [
+            "macro_policy_analyst",
+            "report_writer",
+            "reviewer"
+          ],
+          "actual_agents": [
+            "macro_policy_analyst",
+            "report_writer",
+            "reviewer"
+          ],
+          "missing_agents": [],
+          "forbidden_agents_present": []
+        },
+        "tool_calls": {
+          "passed": true,
+          "score": 1.0,
+          "actual_tools": [],
+          "unexpected_tools": []
+        },
+        "memory": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "rag": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "min_hits",
+              "passed": true,
+              "actual": 6,
+              "expected": 1
+            },
+            {
+              "name": "source_type",
+              "passed": true,
+              "actual": "macro_policy",
+              "expected": "macro_policy"
+            },
+            {
+              "name": "rag_completed_trace",
+              "passed": true,
+              "actual": 1,
+              "expected": 1
+            }
+          ]
+        },
+        "output_quality": {
+          "passed": true,
+          "score": 1.0,
+          "response": "好的，作为中国宏观研究员，我将严格依据所提供的检索素材，生成一份宏观研究报告。请注意，本报告的数据基础有限，主要基于2025年中央政府工作报告部分内容及2022年六安市等地方报告的片段，整体代表性不足，结论需谨慎看待。\n\n---\n\n### **宏观研究报告：财政政策扩内需的效果、证据与风险——基于有限数据的阶段性分析**\n\n**报告日期：** 2026年6月1日\n**数据基础：** 2025年中央政府工作报告节选（引自地级市报告）、2022年六安市政府工作报告。**本报告数据覆盖范围有限，结论具有高度推断性。**\n\n#### 1. 核心宏观观点\n\n基于现有证据，2025年中国财政政策扩张力度显"
+        },
+        "efficiency": {
+          "passed": true,
+          "score": 1.0,
+          "metrics": {
+            "tool_call_count": 0,
+            "duplicate_tool_call_count": 0,
+            "trace_step_count": 12,
+            "avg_tool_latency_ms": 0.0,
+            "max_tool_latency_ms": 0.0,
+            "tool_success_rate": 1.0
+          },
+          "checks": [
+            {
+              "name": "max_tool_calls",
+              "passed": true,
+              "actual": 0,
+              "expected": 0
+            },
+            {
+              "name": "max_trace_steps",
+              "passed": true,
+              "actual": 12,
+              "expected": 50
+            }
+          ]
+        },
+        "quality": {
+          "passed": false,
+          "score": 0.0,
+          "min_overall": 0.75,
+          "checks": [
+            {
+              "name": "must_include:policy",
+              "passed": false,
+              "expected": "policy"
+            },
+            {
+              "name": "must_include:evidence",
+              "passed": false,
+              "expected": "evidence"
+            },
+            {
+              "name": "must_include:risks",
+              "passed": false,
+              "expected": "risks"
+            },
+            {
+              "name": "must_include_any",
+              "passed": false,
+              "expected": [
+                "data limits",
+                "limitations"
+              ]
+            },
+            {
+              "name": "structure",
+              "passed": false,
+              "expected": true
+            },
+            {
+              "name": "risk_awareness",
+              "passed": false,
+              "expected": true
+            },
+            {
+              "name": "data_limits",
+              "passed": false,
+              "expected": true
+            },
+            {
+              "name": "safety",
+              "passed": false,
+              "expected": true
+            }
+          ]
+        },
+        "llm_judge": {
+          "passed": true,
+          "score": 0.8,
+          "min_overall": 0.75,
+          "judge_result": {
+            "factual_consistency": 0.7,
+            "financial_professionalism": 0.8,
+            "evidence_grounding": 0.6,
+            "structure": 0.9,
+            "risk_awareness": 0.95,
+            "readability": 0.85,
+            "overall": 0.8,
+            "issues": [
+              "在关键指标部分声称2022年六安市报告提及“地区生产总值增长4%左右”，但在提供的RAG证据中无此数据，属于不支持的声称。",
+              "报告中出现“自述以来最大力度”等措辞，表述不严谨，可能为笔误。",
+              "部分资产影响分析（权益、债券、商品、外汇、行业）纯属推断，虽已说明数据限制，但缺乏实证基础，可能误导读者。",
+              "报告对银行业普惠小微企业贷款增长27.3%的数据处理过于谨慎，声称无法溯源确认，但实际RAG证据中包含此数据，虽不算事实错误，但暴露了审核不细致。"
+            ],
+            "_llm": {
+              "provider": "deepseek",
+              "model": "deepseek-v4-flash",
+              "usage": {
+                "created_at": "2026-06-01T00:09:17.793458+00:00",
+                "provider": "deepseek",
+                "model": "deepseek-v4-flash",
+                "prompt_cache_key": null,
+                "prompt_cache_supported": false,
+                "input_tokens": 9085,
+                "output_tokens": 1926,
+                "total_tokens": 11011,
+                "cached_tokens": 0,
+                "cache_miss_tokens": 9085,
+                "cache_hit": false
+              }
+            }
+          }
+        }
+      },
+      "conversation_route": "investment_task",
+      "required_agents": [
+        "macro_policy_analyst",
+        "reviewer",
+        "report_writer"
+      ],
+      "tool_calls": [],
+      "trace": [
+        {
+          "created_at": "2026-06-01T00:07:30.515765+00:00",
+          "event": "research_started",
+          "node": "research_graph",
+          "payload": {
+            "user_query": "Analyze fiscal policy impact on expanding domestic demand and generate a macro research report with evidence and risks"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:07:35.430301+00:00",
+          "event": "llm_requested",
+          "node": "investment_task_manager",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:07:41.889379+00:00",
+          "event": "llm_completed",
+          "node": "investment_task_manager",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:07:41.890386+00:00",
+          "event": "rag_requested",
+          "node": "macro_policy_analyst",
+          "payload": {
+            "source_type": "macro_policy",
+            "start_year": 2021,
+            "end_year": 2026,
+            "top_k": 6
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:08:08.826643+00:00",
+          "event": "rag_completed",
+          "node": "macro_policy_analyst",
+          "payload": {
+            "source_type": "macro_policy",
+            "mode": "dense",
+            "hit_count": 6
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:08:08.826643+00:00",
+          "event": "llm_requested",
+          "node": "macro_policy_analyst",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:08:24.560608+00:00",
+          "event": "llm_completed",
+          "node": "macro_policy_analyst",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:08:24.561615+00:00",
+          "event": "llm_requested",
+          "node": "reviewer",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:08:38.386732+00:00",
+          "event": "llm_completed",
+          "node": "reviewer",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:08:38.393171+00:00",
+          "event": "llm_requested",
+          "node": "report_writer",
+          "payload": {
+            "format": "text"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:02.386759+00:00",
+          "event": "llm_completed",
+          "node": "report_writer",
+          "payload": {
+            "format": "text"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:09:02.387767+00:00",
+          "event": "research_finished",
+          "node": "research_graph",
+          "payload": {}
+        }
+      ],
+      "warnings": []
+    }
+  ]
+}

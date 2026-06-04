@@ -1,0 +1,690 @@
+{
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "pass_rate": 1.0,
+    "by_category": {
+      "l2_integration": {
+        "total": 2,
+        "passed": 2,
+        "failed": 0
+      }
+    },
+    "by_benchmark": {
+      "l2": {
+        "total": 2,
+        "passed": 2,
+        "failed": 0,
+        "pass_rate": 1.0
+      }
+    },
+    "metrics": {
+      "efficiency": 1.0,
+      "llm_judge": 1.0,
+      "memory": 1.0,
+      "output_quality": 1.0,
+      "quality": 1.0,
+      "rag": 1.0,
+      "route": 1.0,
+      "task_plan": 1.0,
+      "tool_calls": 1.0,
+      "trajectory": 1.0
+    }
+  },
+  "results": [
+    {
+      "id": "l2_macro_policy_rag_integration",
+      "category": "l2_integration",
+      "benchmark": "l2",
+      "passed": true,
+      "scores": {
+        "route": {
+          "passed": true,
+          "score": 1.0,
+          "expected": "investment_task",
+          "actual": "investment_task"
+        },
+        "task_plan": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "action",
+              "passed": true
+            }
+          ],
+          "task_plan": {
+            "action": "execute",
+            "task_type": "macro_research",
+            "target": {
+              "symbols": [],
+              "names": [],
+              "industry": null,
+              "market": "cn",
+              "asset_type": "stock"
+            },
+            "start_date": "20210101",
+            "end_date": "20260601",
+            "user_date_range": {
+              "start_date": null,
+              "end_date": null,
+              "explicit": false
+            },
+            "date_ranges": {
+              "macro_policy": {
+                "start_date": "20210101",
+                "end_date": "20260601"
+              }
+            },
+            "required_agents": [
+              "macro_policy_analyst"
+            ],
+            "modules": {
+              "data": false,
+              "macro_policy": true,
+              "industry": false,
+              "price_volume": false,
+              "valuation": false,
+              "fundamentals": false,
+              "review": false,
+              "report": false
+            },
+            "agent_tasks": {
+              "macro_policy_analyst": "使用 RagRetriever 检索财政政策相关文本，分析财政政策对扩大内需的影响，总结关键政策方向、工具和预期效果。"
+            },
+            "tool_needs": {
+              "macro_policy_analyst": [
+                "RagRetriever.retrieve_policy"
+              ]
+            },
+            "needs_tool": true,
+            "needs_clarification": false,
+            "missing_fields": [],
+            "clarifying_question": null,
+            "direct_answer": null,
+            "output_type": "analysis_summary",
+            "report_type": "none",
+            "report_requirements": {
+              "language": "zh-CN",
+              "style": "专业、克制、证据可追溯",
+              "length": "根据任务复杂度决定"
+            },
+            "reason": "用户询问财政政策对扩大内需的影响，属于宏观政策分析。根据 heuristic_plan 确认任务类型为 macro_research，output_type 为 analysis_summary，不需要完整报告。仅需 macro_policy_analyst 基于 RagRetriever 检索证据进行专业分析，无需其他模块。",
+            "_llm": {
+              "provider": "deepseek",
+              "model": "deepseek-v4-flash",
+              "usage": {
+                "created_at": "2026-06-01T00:05:01.442305+00:00",
+                "provider": "deepseek",
+                "model": "deepseek-v4-flash",
+                "prompt_cache_key": null,
+                "prompt_cache_supported": false,
+                "input_tokens": 3198,
+                "output_tokens": 804,
+                "total_tokens": 4002,
+                "cached_tokens": 3072,
+                "cache_miss_tokens": 126,
+                "cache_hit": true
+              }
+            }
+          }
+        },
+        "trajectory": {
+          "passed": true,
+          "score": 1.0,
+          "expected_agents": [
+            "macro_policy_analyst"
+          ],
+          "actual_agents": [
+            "macro_policy_analyst"
+          ],
+          "missing_agents": [],
+          "forbidden_agents_present": []
+        },
+        "tool_calls": {
+          "passed": true,
+          "score": 1.0,
+          "actual_tools": [],
+          "unexpected_tools": []
+        },
+        "memory": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "rag": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "min_hits",
+              "passed": true,
+              "actual": 6,
+              "expected": 1
+            },
+            {
+              "name": "source_type",
+              "passed": true,
+              "actual": "macro_policy",
+              "expected": "macro_policy"
+            },
+            {
+              "name": "rag_completed_trace",
+              "passed": true,
+              "actual": 1,
+              "expected": 1
+            }
+          ]
+        },
+        "output_quality": {
+          "passed": true,
+          "score": 1.0,
+          "response": "中国财政政策通过扩大政府支出、减税降费、专项债和特别国债等工具积极扩大内需，重点支持基建投资、消费刺激和民生保障，2025年政策力度显著加大。\n- 2025年赤字率拟按4%左右安排，赤字规模5.66万亿元，一般公共预算支出29.7万亿元，均较上年显著增加。\n- 2025年拟发行超长期特别国债1.3万亿元、特别国债5000亿元、地方专项债4.4万亿元，合计新增政府债务11.86万亿元，财政支出强度明显加大。\n- 支出结构优化，更加注重惠民生、促消费、增后劲，中央加大对地方转移支付，向困难地区倾斜。\n- 2023年通过增值税留抵退税2.4万亿元、减税降费超1万亿元等政策纾困企业，并提前实施重大工程"
+        },
+        "efficiency": {
+          "passed": true,
+          "score": 1.0,
+          "metrics": {
+            "tool_call_count": 0,
+            "duplicate_tool_call_count": 0,
+            "trace_step_count": 8,
+            "avg_tool_latency_ms": 0.0,
+            "max_tool_latency_ms": 0.0,
+            "tool_success_rate": 1.0
+          },
+          "checks": [
+            {
+              "name": "max_tool_calls",
+              "passed": true,
+              "actual": 0,
+              "expected": 0
+            },
+            {
+              "name": "max_trace_steps",
+              "passed": true,
+              "actual": 8,
+              "expected": 20
+            }
+          ]
+        },
+        "quality": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "llm_judge": {
+          "passed": true,
+          "score": 1.0,
+          "skipped": true,
+          "reason": "no quality rubric"
+        }
+      },
+      "conversation_route": "investment_task",
+      "required_agents": [
+        "macro_policy_analyst"
+      ],
+      "tool_calls": [],
+      "trace": [
+        {
+          "created_at": "2026-06-01T00:04:54.485696+00:00",
+          "event": "research_started",
+          "node": "research_graph",
+          "payload": {
+            "user_query": "Analyze fiscal policy impact on expanding domestic demand"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:04:56.362841+00:00",
+          "event": "llm_requested",
+          "node": "investment_task_manager",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:01.443347+00:00",
+          "event": "llm_completed",
+          "node": "investment_task_manager",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:01.444353+00:00",
+          "event": "rag_requested",
+          "node": "macro_policy_analyst",
+          "payload": {
+            "source_type": "macro_policy",
+            "start_year": 2021,
+            "end_year": 2026,
+            "top_k": 6
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:11.980294+00:00",
+          "event": "rag_completed",
+          "node": "macro_policy_analyst",
+          "payload": {
+            "source_type": "macro_policy",
+            "mode": "dense",
+            "hit_count": 6
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:11.981298+00:00",
+          "event": "llm_requested",
+          "node": "macro_policy_analyst",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:20.688775+00:00",
+          "event": "llm_completed",
+          "node": "macro_policy_analyst",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:20.688775+00:00",
+          "event": "research_finished",
+          "node": "research_graph",
+          "payload": {}
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "l2_price_volume_tool_integration",
+      "category": "l2_integration",
+      "benchmark": "l2",
+      "passed": true,
+      "scores": {
+        "route": {
+          "passed": true,
+          "score": 1.0,
+          "expected": "investment_task",
+          "actual": "investment_task"
+        },
+        "task_plan": {
+          "passed": true,
+          "score": 1.0,
+          "checks": [
+            {
+              "name": "action",
+              "passed": true
+            },
+            {
+              "name": "symbol",
+              "passed": true
+            },
+            {
+              "name": "start_date",
+              "passed": true
+            },
+            {
+              "name": "end_date",
+              "passed": true
+            }
+          ],
+          "task_plan": {
+            "action": "execute",
+            "task_type": "price_volume_analysis",
+            "target": {
+              "symbols": [
+                "600519.SH"
+              ],
+              "names": [],
+              "industry": null,
+              "market": "cn",
+              "asset_type": "stock"
+            },
+            "start_date": "20240101",
+            "end_date": "20240131",
+            "user_date_range": {
+              "start_date": "20240101",
+              "end_date": "20240131",
+              "explicit": true
+            },
+            "date_ranges": {
+              "price_volume": {
+                "start_date": "20240101",
+                "end_date": "20240131"
+              }
+            },
+            "required_agents": [
+              "data_collector",
+              "price_volume_analyst"
+            ],
+            "modules": {
+              "data": true,
+              "macro_policy": false,
+              "industry": false,
+              "price_volume": true,
+              "valuation": false,
+              "fundamentals": false,
+              "review": false,
+              "report": false
+            },
+            "agent_tasks": {
+              "data_collector": "解析研究对象 600519.SH 的基本信息，确认标的和基础数据。",
+              "price_volume_analyst": "基于 2024-01-01 至 2024-01-31 的行情数据，分析股价趋势、涨跌幅、成交量等价格行为。"
+            },
+            "tool_needs": {
+              "data_collector": [
+                "resolve_instrument_tool"
+              ],
+              "price_volume_analyst": [
+                "get_stock_price_tool",
+                "get_stock_volume_tool"
+              ]
+            },
+            "needs_tool": true,
+            "needs_clarification": false,
+            "missing_fields": [],
+            "clarifying_question": null,
+            "direct_answer": null,
+            "output_type": "analysis_summary",
+            "report_requirements": {
+              "language": "zh-CN",
+              "style": "专业、克制、可审计",
+              "length": "根据用户任务复杂度决定"
+            },
+            "reason": "用户明确要求分析 600519.SH 在指定时间范围内的价格趋势，属于股价走势分析。不需要报告，output_type 选择 analysis_summary。已解析出标的和时间范围，无需追问。仅需 data_collector 和 price_volume_analyst 参与，工具以价格与成交量数据获取为主。",
+            "report_type": "none",
+            "_llm": {
+              "provider": "deepseek",
+              "model": "deepseek-v4-flash",
+              "usage": {
+                "created_at": "2026-06-01T00:05:30.738775+00:00",
+                "provider": "deepseek",
+                "model": "deepseek-v4-flash",
+                "prompt_cache_key": null,
+                "prompt_cache_supported": false,
+                "input_tokens": 3179,
+                "output_tokens": 964,
+                "total_tokens": 4143,
+                "cached_tokens": 3072,
+                "cache_miss_tokens": 107,
+                "cache_hit": true
+              }
+            }
+          }
+        },
+        "trajectory": {
+          "passed": true,
+          "score": 1.0,
+          "expected_agents": [
+            "data_collector",
+            "price_volume_analyst"
+          ],
+          "actual_agents": [
+            "data_collector",
+            "price_volume_analyst"
+          ],
+          "missing_agents": [],
+          "forbidden_agents_present": []
+        },
+        "tool_calls": {
+          "passed": true,
+          "score": 1.0,
+          "expected_tools": [
+            "analyze_ohlcv_price_trend_tool",
+            "generate_ohlcv_price_chart_tool",
+            "resolve_instrument_tool"
+          ],
+          "actual_tools": [
+            "resolve_instrument_tool",
+            "analyze_ohlcv_price_trend_tool",
+            "generate_ohlcv_price_chart_tool"
+          ],
+          "missing_tools": [],
+          "redundant_tools": []
+        },
+        "memory": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "rag": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "output_quality": {
+          "passed": true,
+          "score": 1.0,
+          "response": "分析区间：20240101 至 20240131\n\n基于2024年1月2日至1月31日（共22个交易日）的日线行情数据，对600519.SH（贵州茅台）进行量价分析。期间股价从1685.01元下跌至1604.91元，区间收益率为-4.75%，年化波动率约20.46%，最大回撤-6.91%。整体呈现震荡下跌趋势，成交量未见显著异常。MA5（1628.65）与MA20（1634.05）基本粘合，股价在1月下旬持续运行于均线下方，短期偏弱。技术指标（布林带、RSI、MACD）可辅助观察超卖区间和动能变化。\n- 区间收益率-4.75%，最高价1718.19元，最低价1555.55元，收盘价自1685."
+        },
+        "efficiency": {
+          "passed": true,
+          "score": 1.0,
+          "metrics": {
+            "tool_call_count": 3,
+            "duplicate_tool_call_count": 0,
+            "trace_step_count": 12,
+            "avg_tool_latency_ms": 161.79,
+            "max_tool_latency_ms": 459.06,
+            "tool_success_rate": 0.6667
+          },
+          "checks": [
+            {
+              "name": "max_tool_calls",
+              "passed": true,
+              "actual": 3,
+              "expected": 4
+            },
+            {
+              "name": "max_duplicate_tool_calls",
+              "passed": true,
+              "actual": 0,
+              "expected": 0
+            },
+            {
+              "name": "max_trace_steps",
+              "passed": true,
+              "actual": 12,
+              "expected": 30
+            },
+            {
+              "name": "max_avg_tool_latency_ms",
+              "passed": true,
+              "actual": 161.79,
+              "expected": 1000
+            }
+          ]
+        },
+        "quality": {
+          "passed": true,
+          "score": 1.0,
+          "checks": []
+        },
+        "llm_judge": {
+          "passed": true,
+          "score": 1.0,
+          "skipped": true,
+          "reason": "no quality rubric"
+        }
+      },
+      "conversation_route": "investment_task",
+      "required_agents": [
+        "data_collector",
+        "price_volume_analyst"
+      ],
+      "tool_calls": [
+        {
+          "node": "data_collector",
+          "tool": "resolve_instrument_tool",
+          "arguments": {
+            "query": "600519.SH",
+            "market": "cn",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "price_volume_analyst",
+          "tool": "analyze_ohlcv_price_trend_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20240101",
+            "end_date": "20240131",
+            "provider": "auto"
+          }
+        },
+        {
+          "node": "price_volume_analyst",
+          "tool": "generate_ohlcv_price_chart_tool",
+          "arguments": {
+            "symbol": "600519.SH",
+            "market": "cn",
+            "asset_type": "stock",
+            "start_date": "20240101",
+            "end_date": "20240131",
+            "provider": "auto",
+            "chart_type": "candlestick",
+            "ma_windows": "5,20",
+            "show_volume": true,
+            "indicators": "bollinger,rsi,macd"
+          }
+        }
+      ],
+      "trace": [
+        {
+          "created_at": "2026-06-01T00:05:22.885966+00:00",
+          "event": "research_started",
+          "node": "research_graph",
+          "payload": {
+            "user_query": "Analyze 600519.SH from 2024-01-01 to 2024-01-31 price trend"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:24.730197+00:00",
+          "event": "llm_requested",
+          "node": "investment_task_manager",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:30.738775+00:00",
+          "event": "llm_completed",
+          "node": "investment_task_manager",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:30.738775+00:00",
+          "event": "tool_requested",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "arguments": {
+              "query": "600519.SH",
+              "market": "cn",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:30.742823+00:00",
+          "event": "tool_completed",
+          "node": "data_collector",
+          "payload": {
+            "tool": "resolve_instrument_tool",
+            "success": null,
+            "elapsed_ms": 3.33,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:30.743823+00:00",
+          "event": "tool_requested",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "analyze_ohlcv_price_trend_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20240101",
+              "end_date": "20240131",
+              "provider": "auto"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:30.760177+00:00",
+          "event": "tool_completed",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "analyze_ohlcv_price_trend_tool",
+            "success": true,
+            "elapsed_ms": 22.99,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:30.760177+00:00",
+          "event": "tool_requested",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "generate_ohlcv_price_chart_tool",
+            "arguments": {
+              "symbol": "600519.SH",
+              "market": "cn",
+              "asset_type": "stock",
+              "start_date": "20240101",
+              "end_date": "20240131",
+              "provider": "auto",
+              "chart_type": "candlestick",
+              "ma_windows": "5,20",
+              "show_volume": true,
+              "indicators": "bollinger,rsi,macd"
+            }
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:31.225478+00:00",
+          "event": "tool_completed",
+          "node": "price_volume_analyst",
+          "payload": {
+            "tool": "generate_ohlcv_price_chart_tool",
+            "success": true,
+            "elapsed_ms": 459.06,
+            "symbol": "600519.SH"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:31.225478+00:00",
+          "event": "llm_requested",
+          "node": "price_volume_analyst",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:39.972461+00:00",
+          "event": "llm_completed",
+          "node": "price_volume_analyst",
+          "payload": {
+            "format": "json"
+          }
+        },
+        {
+          "created_at": "2026-06-01T00:05:39.973464+00:00",
+          "event": "research_finished",
+          "node": "research_graph",
+          "payload": {}
+        }
+      ],
+      "warnings": [
+        "600519.SH: Trading days fewer than 60; MA60 is unavailable or less meaningful."
+      ]
+    }
+  ]
+}

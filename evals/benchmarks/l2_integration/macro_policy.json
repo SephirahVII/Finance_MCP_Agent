@@ -1,0 +1,24 @@
+[
+  {
+    "id": "l2_macro_policy_rag_integration",
+    "category": "l2_integration",
+    "query": "Analyze fiscal policy impact on expanding domestic demand",
+    "expected": {
+      "route": "investment_task",
+      "action": "execute",
+      "required_agents": [
+        "macro_policy_analyst"
+      ],
+      "forbidden_tools": true,
+      "rag": {
+        "source_type": "macro_policy",
+        "min_hits": 1
+      },
+      "efficiency": {
+        "max_tool_calls": 0,
+        "max_trace_steps": 20
+      }
+    }
+  }
+]
+

@@ -17,6 +17,23 @@ _PRICE_TERMS = {"价格", "股价", "行情", "走势", "趋势", "量价", "技
 _FUNDAMENTAL_TERMS = {"基本面", "财务", "利润", "营收", "现金流", "ROE", "毛利率", "资产负债"}
 _VALUATION_TERMS = {"估值", "市值", "换手率", "PE", "PB", "PS", "股本", "流通市值"}
 _INDUSTRY_TERMS = {"行业", "产业", "股票池", "成分股", "同行", "可比公司"}
+_NEWS_TERMS = {
+    "新闻",
+    "资讯",
+    "舆情",
+    "公告",
+    "事件",
+    "热点",
+    "催化",
+    "消息",
+    "利好",
+    "利空",
+    "负面",
+    "研报",
+    "研究报告",
+    "发生了什么",
+    "市场关注",
+}
 _REPORT_TERMS = {"报告", "研报", "完整分析", "完整研究"}
 _MACRO_POLICY_TERMS = {
     "macro",
@@ -34,7 +51,7 @@ _MACRO_POLICY_TERMS = {
     "稳增长",
     "扩内需",
 }
-_DATE_MODULES = ("price_volume", "valuation", "fundamentals", "industry", "macro_policy")
+_DATE_MODULES = ("price_volume", "valuation", "fundamentals", "industry", "macro_policy", "news")
 _REPORT_TYPES = {
     "none",
     "stock_trend_report",
@@ -115,6 +132,10 @@ def _default_date_ranges(
         },
         "industry": {
             "start_date": _format_date(today - timedelta(days=90)),
+            "end_date": _format_date(today),
+        },
+        "news": {
+            "start_date": _format_date(today - timedelta(days=30)),
             "end_date": _format_date(today),
         },
     }
@@ -287,6 +308,7 @@ def _heuristic_plan(state: ResearchState) -> dict[str, Any]:
 def _normalize_required_agents(value: Any) -> list[str]:
     allowed = {
         "data_collector",
+        "news_analyst",
         "macro_policy_analyst",
         "industry_analyst",
         "price_volume_analyst",
@@ -303,6 +325,7 @@ def _normalize_required_agents(value: Any) -> list[str]:
 def _modules_from_agents(required_agents: list[str]) -> dict[str, bool]:
     return {
         "data": "data_collector" in required_agents,
+        "news": "news_analyst" in required_agents,
         "macro_policy": "macro_policy_analyst" in required_agents,
         "industry": "industry_analyst" in required_agents,
         "price_volume": "price_volume_analyst" in required_agents,
@@ -316,6 +339,7 @@ def _modules_from_agents(required_agents: list[str]) -> dict[str, bool]:
 def _agents_from_modules(modules: Any) -> list[str]:
     module_to_agent = {
         "data": "data_collector",
+        "news": "news_analyst",
         "macro_policy": "macro_policy_analyst",
         "industry": "industry_analyst",
         "price_volume": "price_volume_analyst",
@@ -432,6 +456,15 @@ def run_investment_task_manager(state: ResearchState) -> ResearchState:
     plan["modules"] = _modules_from_agents(required_agents)
     plan["target"] = {**fallback["target"], **target, "symbols": symbols, "industry": industry}
     plan["report_type"] = _normalize_report_type(plan.get("report_type"), plan.get("output_type"))
+    wants_news = (
+        _contains_any(state.get("user_query", ""), _NEWS_TERMS)
+        or plan.get("task_type") in {"company_research", "industry_research"}
+        or plan.get("report_type") in {"company_research_report", "industry_research_report"}
+    )
+    if action == "execute" and wants_news and (symbols or industry):
+        required_agents = list(dict.fromkeys(["data_collector", *required_agents, "news_analyst"]))
+        plan["required_agents"] = required_agents
+        plan["modules"] = _modules_from_agents(required_agents)
 
     fallback_date_ranges = fallback.get("date_ranges", {})
     if not isinstance(fallback_date_ranges, dict) or not fallback_date_ranges:
@@ -520,6 +553,11 @@ def run_investment_task_reviewer(state: ResearchState) -> ResearchState:
     wants_fundamental = _contains_any(query, _FUNDAMENTAL_TERMS)
     wants_valuation = _contains_any(query, _VALUATION_TERMS) or wants_report
     wants_industry = _contains_any(query, _INDUSTRY_TERMS) or bool(state.get("industry"))
+    wants_news = (
+        _contains_any(query, _NEWS_TERMS)
+        or "news_analyst" in required_agents
+        or planned_report_type in {"company_research_report", "industry_research_report"}
+    )
     wants_macro_policy = (
         _contains_any(query, _MACRO_POLICY_TERMS)
         or plan.get("task_type") == "macro_research"
@@ -541,6 +579,7 @@ def run_investment_task_reviewer(state: ResearchState) -> ResearchState:
         report_type = "analysis_summary"
 
     requirements = {
+        "news": wants_news and not wants_macro_policy,
         "price_volume": (wants_price or wants_report) and not wants_macro_policy,
         "valuation": wants_valuation and not wants_macro_policy,
         "fundamentals": (wants_fundamental or report_type == "company_research_report")
@@ -549,6 +588,7 @@ def run_investment_task_reviewer(state: ResearchState) -> ResearchState:
         "macro_policy": wants_macro_policy,
     }
     available = {
+        "news": bool(state.get("news_analysis", {}).get("analysis")),
         "price_volume": _has_successful_package(state, "price_volume_analysis"),
         "valuation": _has_successful_package(state, "valuation_analysis"),
         "fundamentals": _has_successful_package(state, "fundamental_analysis"),
@@ -557,6 +597,7 @@ def run_investment_task_reviewer(state: ResearchState) -> ResearchState:
     }
 
     module_to_agent = {
+        "news": "news_analyst",
         "price_volume": "price_volume_analyst",
         "valuation": "valuation_analyst",
         "fundamentals": "fundamental_analyst",

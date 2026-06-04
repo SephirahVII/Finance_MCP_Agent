@@ -59,11 +59,11 @@ def _retrieve_policy_evidence(
             start_year=start_year,
             end_year=end_year,
             top_k=top_k,
-            mode="hybrid",
+            mode="dense",
         )
-        return [_hit_to_dict(hit) for hit in hits], warnings, "hybrid"
+        return [_hit_to_dict(hit) for hit in hits], warnings, "dense"
     except Exception as exc:
-        warnings.append(f"macro_policy_analyst：hybrid RAG 检索失败：{exc}")
+        warnings.append(f"macro_policy_analyst：dense RAG 检索失败：{exc}")
 
     try:
         hits = retriever.retrieve_policy(

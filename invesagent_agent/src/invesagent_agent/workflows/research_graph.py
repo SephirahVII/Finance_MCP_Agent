@@ -10,10 +10,12 @@ from invesagent_agent.agents.investment_task_manager import (
     run_investment_task_reviewer,
 )
 from invesagent_agent.agents.macro_policy_analyst import run_macro_policy_analyst
+from invesagent_agent.agents.news_analyst import run_news_analyst
 from invesagent_agent.agents.price_volume_analyst import run_price_volume_analyst
 from invesagent_agent.agents.report_writer import run_report_writer
 from invesagent_agent.agents.reviewer import run_reviewer
 from invesagent_agent.agents.valuation_analyst import run_valuation_analyst
+from invesagent_agent.clients.tool_client import StdioMCPToolClient
 from invesagent_agent.runtime.memory import MemoryManager
 from invesagent_agent.runtime.trace import append_trace, build_run_report
 from invesagent_agent.workflows.research_state import ResearchState
@@ -21,6 +23,7 @@ from invesagent_agent.workflows.research_state import ResearchState
 
 AGENT_ORDER = (
     "data_collector",
+    "news_analyst",
     "macro_policy_analyst",
     "industry_analyst",
     "price_volume_analyst",
@@ -30,6 +33,7 @@ AGENT_ORDER = (
 )
 MODULE_TO_AGENT = {
     "data": "data_collector",
+    "news": "news_analyst",
     "macro_policy": "macro_policy_analyst",
     "industry": "industry_analyst",
     "price_volume": "price_volume_analyst",
@@ -85,6 +89,10 @@ def _route_after_data_collector(state: ResearchState) -> str:
     return _next_agent_after(state, "data_collector")
 
 
+def _route_after_news(state: ResearchState) -> str:
+    return _next_agent_after(state, "news_analyst")
+
+
 def _route_after_macro_policy(state: ResearchState) -> str:
     return _next_agent_after(state, "macro_policy_analyst")
 
@@ -112,6 +120,7 @@ def _route_after_reviewer(state: ResearchState) -> str:
 def _route_after_task_reviewer(state: ResearchState) -> str:
     retry_agents = state.get("report_review", {}).get("retry_agents", [])
     for agent in (
+        "news_analyst",
         "price_volume_analyst",
         "valuation_analyst",
         "fundamental_analyst",
@@ -131,6 +140,7 @@ def build_research_graph():
 
     graph.add_node("investment_task_manager", run_investment_task_manager)
     graph.add_node("data_collector", run_data_collector)
+    graph.add_node("news_analyst", run_news_analyst)
     graph.add_node("macro_policy_analyst", run_macro_policy_analyst)
     graph.add_node("price_volume_analyst", run_price_volume_analyst)
     graph.add_node("valuation_analyst", run_valuation_analyst)
@@ -143,6 +153,7 @@ def build_research_graph():
     graph.set_entry_point("investment_task_manager")
     route_targets = {
         "data_collector": "data_collector",
+        "news_analyst": "news_analyst",
         "macro_policy_analyst": "macro_policy_analyst",
         "industry_analyst": "industry_analyst",
         "price_volume_analyst": "price_volume_analyst",
@@ -155,6 +166,7 @@ def build_research_graph():
     }
     graph.add_conditional_edges("investment_task_manager", _route_after_manager, route_targets)
     graph.add_conditional_edges("data_collector", _route_after_data_collector, route_targets)
+    graph.add_conditional_edges("news_analyst", _route_after_news, route_targets)
     graph.add_conditional_edges("macro_policy_analyst", _route_after_macro_policy, route_targets)
     graph.add_conditional_edges("industry_analyst", _route_after_industry, route_targets)
     graph.add_conditional_edges(
@@ -196,6 +208,7 @@ def build_research_graph():
         "investment_task_reviewer",
         _route_after_task_reviewer,
         {
+            "news_analyst": "news_analyst",
             "price_volume_analyst": "price_volume_analyst",
             "valuation_analyst": "valuation_analyst",
             "fundamental_analyst": "fundamental_analyst",
@@ -222,6 +235,8 @@ def run_research_workflow(
 ) -> ResearchState:
     """Run the compiled research workflow and return the final state."""
     workflow = build_research_graph()
+    workflow_tool_client = tool_client or StdioMCPToolClient(persistent=True)
+    owns_tool_client = tool_client is None
     initial_state: ResearchState = {
         "user_query": user_query,
         "market": market,
@@ -230,7 +245,7 @@ def run_research_workflow(
         "industry_member_limit": industry_member_limit,
         "messages": messages or [{"role": "user", "content": user_query}],
         "task_memory": MemoryManager({"task_memory": task_memory or {}}).root(),
-        "tool_client": tool_client,
+        "tool_client": workflow_tool_client,
         "tool_calls": [],
         "observations": [],
         "analyst_notes": {},
@@ -245,7 +260,11 @@ def run_research_workflow(
         node="research_graph",
         payload={"user_query": user_query},
     )
-    result = workflow.invoke(initial_state)
-    result["trace"] = append_trace(result, event="research_finished", node="research_graph")
-    result["run_report"] = build_run_report(result)
-    return result
+    try:
+        result = workflow.invoke(initial_state)
+        result["trace"] = append_trace(result, event="research_finished", node="research_graph")
+        result["run_report"] = build_run_report(result)
+        return result
+    finally:
+        if owns_tool_client and hasattr(workflow_tool_client, "close"):
+            workflow_tool_client.close()

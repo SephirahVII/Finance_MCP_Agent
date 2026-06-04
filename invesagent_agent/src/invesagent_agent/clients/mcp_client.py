@@ -3,12 +3,13 @@
 import json
 import os
 import sys
-from contextlib import ExitStack
+from contextlib import ExitStack, asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import anyio
+from anyio.from_thread import BlockingPortal, start_blocking_portal
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
@@ -68,19 +69,96 @@ class InvesAgentMCPClient:
         self.command = command or os.getenv("MCP_PYTHON_PATH") or sys.executable
         self.cwd = Path(cwd) if cwd is not None else _default_mcp_cwd()
         self.env = env or os.environ.copy()
+        self._portal_cm = None
+        self._portal: BlockingPortal | None = None
+        self._session_cm = None
+        self._session: ClientSession | None = None
+        self._opened = False
 
-    async def call_tool_async(self, name: str, arguments: dict[str, Any] | None = None) -> Any:
-        """Call one MCP tool through a stdio MCP server process."""
-        params = StdioServerParameters(
+    def _server_params(self) -> StdioServerParameters:
+        return StdioServerParameters(
             command=self.command,
             args=["-m", "invesagent_mcp.server", "--transport", "stdio"],
             cwd=str(self.cwd),
             env=self.env,
         )
 
+    @asynccontextmanager
+    async def _session_context(self):
+        with open(os.devnull, "w", encoding="utf-8") as errlog:
+            async with stdio_client(self._server_params(), errlog=errlog) as (
+                read_stream,
+                write_stream,
+            ):
+                async with ClientSession(read_stream, write_stream) as session:
+                    await session.initialize()
+                    yield session
+
+    async def _open_async(self) -> None:
+        """Open one-shot async session when used without a blocking portal."""
+        if self._session is not None:
+            return
+
+        context = self._session_context()
+        session = await context.__aenter__()
+        self._session_cm = context
+        self._session = session
+
+    async def _close_async(self) -> None:
+        if self._session_cm is not None:
+            await self._session_cm.__aexit__(None, None, None)
+        self._session_cm = None
+        self._session = None
+
+    async def _call_tool_on_session_async(
+        self,
+        name: str,
+        arguments: dict[str, Any] | None = None,
+    ) -> Any:
+        await self._open_async()
+        if self._session is None:
+            raise RuntimeError("MCP session is not initialized.")
+        result = await self._session.call_tool(name, arguments or {})
+        return _decode_tool_result(result)
+
+    def open(self) -> None:
+        """Open a persistent stdio MCP server/session for repeated tool calls."""
+        if self._opened:
+            return
+        self._portal_cm = start_blocking_portal()
+        self._portal = self._portal_cm.__enter__()
+        self._session_cm = self._portal.wrap_async_context_manager(self._session_context())
+        self._session = self._session_cm.__enter__()
+        self._opened = True
+
+    def close(self) -> None:
+        """Close the persistent MCP session and server process if opened."""
+        if not self._opened:
+            return
+        try:
+            if self._session_cm is not None:
+                self._session_cm.__exit__(None, None, None)
+        finally:
+            self._session_cm = None
+            self._session = None
+            if self._portal_cm is not None:
+                self._portal_cm.__exit__(None, None, None)
+            self._portal_cm = None
+            self._portal = None
+            self._opened = False
+
+    def __enter__(self) -> "InvesAgentMCPClient":
+        self.open()
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        self.close()
+
+    async def call_tool_async(self, name: str, arguments: dict[str, Any] | None = None) -> Any:
+        """Call one MCP tool through a stdio MCP server process."""
         with ExitStack() as stack:
             errlog = stack.enter_context(open(os.devnull, "w", encoding="utf-8"))
-            async with stdio_client(params, errlog=errlog) as (read_stream, write_stream):
+            async with stdio_client(self._server_params(), errlog=errlog) as (read_stream, write_stream):
                 async with ClientSession(read_stream, write_stream) as session:
                     await session.initialize()
                     result = await session.call_tool(name, arguments or {})
@@ -88,6 +166,10 @@ class InvesAgentMCPClient:
 
     def call_tool(self, name: str, arguments: dict[str, Any] | None = None) -> Any:
         """Synchronous helper for current LangGraph nodes."""
+        if self._opened:
+            if self._portal is None:
+                raise RuntimeError("MCP blocking portal is not initialized.")
+            return self._portal.call(self._call_tool_on_session_async, name, arguments or {})
         return anyio.run(self.call_tool_async, name, arguments or {})
 
 

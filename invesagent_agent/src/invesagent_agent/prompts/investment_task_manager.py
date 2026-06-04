@@ -27,7 +27,9 @@ INVESTMENT_TASK_MANAGER_PROMPT = """
 
 当前系统能力边界：
 - 当前 workflow 已有 RagRetriever 支持的 macro_policy_analyst，可检索 macro_policy 历史政策/宏观文本。
-- 新闻、舆情、实时宏观数据和未入库政策仍未接入；如果用户要求这些能力，应写入 reason、data_limits 或追问。
+- 当前 workflow 已有 news_analyst，可运行时抓取个股新闻/研报元数据并分析事件、情绪方向和潜在影响。
+- news_analyst 不做估值、财务测算、技术分析或投资建议；它只提供新闻证据和事件解读。
+- 实时宏观数据和未入库政策仍未接入；如果用户要求这些能力，应写入 reason、data_limits 或追问。
 - 宏观/政策结论必须来自 macro_policy_analyst 的检索证据，不要仅凭常识编造政策事实。
 
 任务类型判断：
@@ -36,6 +38,7 @@ INVESTMENT_TASK_MANAGER_PROMPT = """
 - fundamental_analysis：用户询问财务、营收、利润、现金流、ROE、毛利率、资产负债。
 - industry_research：用户询问行业、产业链、同行、可比公司、行业成分股。
 - company_research：用户要求综合分析一家公司的经营、财务、估值、风险、行业背景。
+- news_research：用户询问新闻、资讯、舆情、公告、事件、热点、催化、利好利空、近期发生了什么。
 - macro_research：用户询问宏观经济、政策、流动性、利率、通胀、PMI、资产配置影响。
 - full_report：用户明确要求研究报告、研报、完整报告、深度报告、投资备忘录，或要求保存/导出报告。
 
@@ -66,6 +69,7 @@ Agent 分派规则：
 - valuation_analysis 和 company_valuation_report 需要 valuation_analyst；如需 DCF 基础，也可加入 fundamental_analyst。
 - fundamental_analysis 和 company_research_report 需要 fundamental_analyst。
 - industry_research_report 需要 industry_analyst。
+- 新闻、公告、热点、舆情、利好利空问题需要 news_analyst；完整公司研究和行业研究报告可以加入 news_analyst 作为辅助证据。
 - full_report 才需要 reviewer 和 report_writer。
 - 简单趋势、走势、行情、涨跌幅问题不要默认加入 valuation_analyst、fundamental_analyst、reviewer、report_writer。
 - 不要为了生成更长答案而加入无关模块。
@@ -96,6 +100,7 @@ Agent 分派规则：
 
 required_agents 可选：
 - data_collector
+- news_analyst
 - industry_analyst
 - price_volume_analyst
 - valuation_analyst
@@ -110,6 +115,7 @@ schema:
   "task_type": "general_finance_qa|price_query|price_volume_analysis|valuation_analysis|fundamental_analysis|industry_research|company_research|macro_research|multi_instrument_comparison|full_report",
   "modules": {
     "data": true,
+    "news": false,
     "industry": false,
     "price_volume": true,
     "valuation": false,
@@ -141,6 +147,7 @@ schema:
   "required_agents": ["string"],
   "agent_tasks": {
     "data_collector": "string",
+    "news_analyst": "string",
     "price_volume_analyst": "string",
     "valuation_analyst": "string",
     "fundamental_analyst": "string",
@@ -149,6 +156,7 @@ schema:
   },
   "tool_needs": {
     "data_collector": ["string"],
+    "news_analyst": ["get_news_or_research_tool"],
     "price_volume_analyst": ["string"],
     "valuation_analyst": ["string"],
     "fundamental_analyst": ["string"],
@@ -173,6 +181,8 @@ INVESTMENT_TASK_MANAGER_PROMPT += """
 
 Current additional capability:
 - The workflow now has a RagRetriever-backed macro_policy_analyst.
+- The workflow now has a runtime news_analyst for company/industry news and
+  research-report metadata.
 - Route macroeconomic, policy, liquidity, rates, inflation, PMI, fiscal, monetary,
   and policy-impact questions to module macro_policy and required agent
   macro_policy_analyst.
@@ -183,6 +193,9 @@ Current additional capability:
 
 Additional module/agent options:
 - modules.macro_policy: true|false
+- modules.news: true|false
 - required_agents may include macro_policy_analyst
+- required_agents may include news_analyst
 - agent_tasks/tool_needs may include macro_policy_analyst
+- agent_tasks/tool_needs may include news_analyst
 """.strip()

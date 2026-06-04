@@ -7,6 +7,7 @@ from invesagent_core.models.fundamentals import (
     FundamentalsAnalysisResult,
     FundamentalsMetrics,
 )
+from invesagent_core.services.data.common import build_quality
 from invesagent_core.services.data.fundamentals import get_fundamentals
 from invesagent_core.utils.dates import normalize_yyyymmdd_date
 
@@ -120,8 +121,38 @@ def analyze_fundamentals(
 
     warnings: list[str] = []
     for name, result in results.items():
+        warnings.extend(result.warnings)
         if not result.success:
             warnings.append(f"{name} unavailable: {result.error_type or result.message}")
+
+    successful_results = [result for result in results.values() if result.success]
+    source_providers = sorted({result.provider for result in successful_results})
+    quality = build_quality(
+        provider="mixed" if len(source_providers) > 1 else (source_providers[0] if source_providers else provider),
+        requested_start_date=normalize_yyyymmdd_date(start_date),
+        requested_end_date=normalize_yyyymmdd_date(end_date),
+        actual_start_date=min(
+            (
+                result.quality.get("actual_range", {}).get("start_date")
+                for result in successful_results
+                if result.quality and result.quality.get("actual_range", {}).get("start_date")
+            ),
+            default=None,
+        ),
+        actual_end_date=max(
+            (
+                result.quality.get("actual_range", {}).get("end_date")
+                for result in successful_results
+                if result.quality and result.quality.get("actual_range", {}).get("end_date")
+            ),
+            default=None,
+        ),
+        record_count=sum(len(result.records) for result in successful_results),
+        fallback_used=any(bool(result.quality and result.quality.get("fallback_used")) for result in successful_results),
+        data_latency="Financial statement data depends on company disclosure and provider refresh timing.",
+        missing_fields=[name for name, result in results.items() if not result.success],
+        notes=[f"providers={','.join(source_providers)}"] if source_providers else [],
+    )
 
     if not any(result.success for result in results.values()):
         first_error = next(iter(results.values()))
@@ -137,6 +168,7 @@ def analyze_fundamentals(
             message="No fundamentals data available for analysis.",
             warnings=warnings,
             raw={key: value.to_dict() for key, value in results.items()},
+            quality=quality,
         )
 
     latest_income = _latest_record(income.records) if income.success else None
@@ -193,10 +225,11 @@ def analyze_fundamentals(
         symbol=symbol,
         market=market,
         asset_type=asset_type,
-        provider="tushare" if provider == "auto" else provider,
+        provider=quality["source_provider"],
         start_date=normalize_yyyymmdd_date(start_date),
         end_date=normalize_yyyymmdd_date(end_date),
         metrics=metrics,
         warnings=warnings,
         raw={key: value.to_dict() for key, value in results.items()},
+        quality=quality,
     )

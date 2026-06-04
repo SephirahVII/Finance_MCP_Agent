@@ -12,6 +12,7 @@ from invesagent_agent.agents.investment_task_manager import (
     run_investment_task_reviewer,
 )
 from invesagent_agent.agents.macro_policy_analyst import run_macro_policy_analyst
+from invesagent_agent.agents.news_analyst import run_news_analyst
 from invesagent_agent.agents.price_volume_analyst import run_price_volume_analyst
 from invesagent_agent.agents.report_writer import run_report_writer
 from invesagent_agent.agents.reviewer import run_reviewer
@@ -38,6 +39,22 @@ class MockToolClient:
             }
         if name == "generate_ohlcv_price_chart_tool":
             return {"success": True, "relative_path": "charts/mock.png"}
+        if name == "get_news_or_research_tool":
+            return {
+                "success": True,
+                "count": 1,
+                "records": [
+                    {
+                        "category": arguments.get("keyword", "news"),
+                        "symbol": arguments.get("symbol"),
+                        "date": "20240601",
+                        "title": "mock news title",
+                        "name": "mock source",
+                        "url": "https://example.com/news",
+                        "provider": arguments.get("provider", "auto"),
+                    }
+                ],
+            }
         return {"success": True, "warnings": [], "message": "", "tool": name}
 
 
@@ -87,6 +104,7 @@ def base_state(mock_tool_client):
             "valuation": {"start_date": "20240101", "end_date": "20240331"},
             "fundamentals": {"start_date": "20240101", "end_date": "20240331"},
             "industry": {"start_date": "20240101", "end_date": "20240331"},
+            "news": {"start_date": "20240301", "end_date": "20240331"},
         },
         "task_plan": {"action": "execute", "modules": {"report": True}},
         "required_agents": [
@@ -162,6 +180,14 @@ def test_investment_task_manager_routes_macro_policy(mock_tool_client, monkeypat
     assert result["task_plan"]["modules"]["macro_policy"] is True
 
 
+def test_investment_task_manager_routes_news(mock_tool_client):
+    state = base_state(mock_tool_client)
+    state["user_query"] = "600519.SH 最近有什么新闻热点"
+    result = run_investment_task_manager(state)
+    assert "news_analyst" in result["required_agents"]
+    assert result["task_plan"]["modules"]["news"] is True
+
+
 def test_macro_policy_analyst_records_rag_evidence(mock_tool_client, monkeypatch):
     class Hit:
         chunk_id = "chunk-1"
@@ -199,6 +225,14 @@ def test_macro_policy_analyst_records_rag_evidence(mock_tool_client, monkeypatch
     result = run_macro_policy_analyst(state)
     assert result["macro_policy_analysis"]["raw"]["hits"][0]["chunk_id"] == "chunk-1"
     assert result["analyst_notes"]["macro_policy"]["summary"] == "mock summary"
+
+
+def test_news_analyst_records_news_analysis(mock_tool_client):
+    result = run_news_analyst(base_state(mock_tool_client))
+    assert "news_analysis" in result
+    assert result["news_analysis"]["raw"]["news_records"]
+    assert result["analyst_notes"]["news"]["summary"] == "mock summary"
+    assert any(name == "get_news_or_research_tool" for name, _ in mock_tool_client.calls)
 
 
 def test_price_volume_analyst_records_analysis_and_chart(mock_tool_client):

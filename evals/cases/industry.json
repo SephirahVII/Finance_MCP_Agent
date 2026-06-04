@@ -1,0 +1,25 @@
+[
+  {
+    "id": "industry_liquor",
+    "category": "industry",
+    "query": "Analyze the liquor industry and its leading stocks",
+    "expected": {
+      "route": "investment_task",
+      "action": "execute",
+      "required_agents": [
+        "data_collector",
+        "industry_analyst"
+      ],
+      "tools": [
+        "resolve_instrument_tool",
+        "get_industry_members_tool",
+        "compare_ohlcv_instruments_tool"
+      ],
+      "efficiency": {
+        "max_tool_calls": 4,
+        "max_duplicate_tool_calls": 1,
+        "max_trace_steps": 35
+      }
+    }
+  }
+]

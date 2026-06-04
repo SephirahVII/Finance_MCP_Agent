@@ -123,6 +123,7 @@ def analyze_valuation_from_result(
             message=valuation.message,
             warnings=valuation.warnings,
             raw=valuation.raw,
+            quality=valuation.quality,
         )
 
     df = _records_to_df(valuation.records)
@@ -179,6 +180,7 @@ def analyze_valuation_from_result(
         observations=len(df),
         metrics=metrics,
         warnings=warnings,
+        quality=valuation.quality,
     )
 
 

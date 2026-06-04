@@ -1,0 +1,56 @@
+[
+  {
+    "id": "multi_turn_stock_code_followup",
+    "category": "multi_turn",
+    "query": "600519.SH",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Please generate a company research report"
+      },
+      {
+        "role": "assistant",
+        "content": "Please provide the company name or stock code."
+      },
+      {
+        "role": "user",
+        "content": "600519.SH"
+      }
+    ],
+    "task_memory": {
+      "session": {
+        "last_query": "Please generate a company research report",
+        "last_task_plan": {
+          "action": "clarification"
+        },
+        "unresolved_clarification": {
+          "missing_fields": [
+            "target"
+          ]
+        }
+      }
+    },
+    "expected": {
+      "route": "investment_task",
+      "action": "execute",
+      "required_agents": [
+        "data_collector",
+        "reviewer",
+        "report_writer"
+      ],
+      "tools": [
+        "resolve_instrument_tool"
+      ],
+      "efficiency": {
+        "max_tool_calls": 6,
+        "max_duplicate_tool_calls": 0,
+        "max_trace_steps": 40
+      },
+      "memory": {
+        "last_symbols": [
+          "600519.SH"
+        ]
+      }
+    }
+  }
+]

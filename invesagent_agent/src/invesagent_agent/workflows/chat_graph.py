@@ -5,6 +5,7 @@ import re
 from langgraph.graph import END, StateGraph
 
 from invesagent_agent.agents.general_assistant import run_general_assistant
+from invesagent_agent.clients.tool_client import StdioMCPToolClient
 from invesagent_agent.runtime.memory import AgentMemory, MemoryManager
 from invesagent_agent.runtime.trace import append_trace, build_run_report
 from invesagent_agent.workflows.chat_state import ChatState
@@ -170,6 +171,8 @@ def run_chat_workflow(
     message_history = messages or [{"role": "user", "content": user_query}]
     memory = MemoryManager({"task_memory": task_memory or {}}).root()
     contextual_query = _build_contextual_query(user_query, message_history, memory)
+    workflow_tool_client = tool_client or StdioMCPToolClient(persistent=True)
+    owns_tool_client = tool_client is None
     initial_state: ChatState = {
         "user_query": contextual_query,
         "raw_user_query": user_query,
@@ -179,7 +182,7 @@ def run_chat_workflow(
         "industry_member_limit": industry_member_limit,
         "messages": message_history,
         "task_memory": memory,
-        "tool_client": tool_client,
+        "tool_client": workflow_tool_client,
         "trace": [],
         "warnings": [],
     }
@@ -189,7 +192,11 @@ def run_chat_workflow(
         node="chat_graph",
         payload={"raw_user_query": user_query, "contextual_query": contextual_query},
     )
-    result = workflow.invoke(initial_state)
-    result["trace"] = append_trace(result, event="chat_finished", node="chat_graph")
-    result["run_report"] = build_run_report(result)
-    return result
+    try:
+        result = workflow.invoke(initial_state)
+        result["trace"] = append_trace(result, event="chat_finished", node="chat_graph")
+        result["run_report"] = build_run_report(result)
+        return result
+    finally:
+        if owns_tool_client and hasattr(workflow_tool_client, "close"):
+            workflow_tool_client.close()

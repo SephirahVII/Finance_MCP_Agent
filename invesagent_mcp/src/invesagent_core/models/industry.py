@@ -33,9 +33,9 @@ class IndustryMembersResult:
     error_type: str | None = None
     message: str | None = None
     warnings: list[str] = field(default_factory=list)
+    quality: dict | None = None
 
     def to_dict(self) -> dict:
         data = asdict(self)
         data["members"] = [member.to_dict() for member in self.members]
         return data
-

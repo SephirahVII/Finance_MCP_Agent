@@ -1,0 +1,36 @@
+[
+  {
+    "id": "valuation_maotai_report",
+    "category": "valuation",
+    "query": "Generate a valuation report for 600519.SH using PE and PB",
+    "expected": {
+      "route": "investment_task",
+      "action": "execute",
+      "required_agents": [
+        "data_collector",
+        "valuation_analyst",
+        "reviewer",
+        "report_writer"
+      ],
+      "tools": [
+        "resolve_instrument_tool",
+        "analyze_valuation_tool",
+        "analyze_ohlcv_price_trend_tool",
+        "generate_ohlcv_price_chart_tool"
+      ],
+      "report_type": "company_valuation_report",
+      "efficiency": {
+        "max_tool_calls": 6,
+        "max_duplicate_tool_calls": 1,
+        "max_trace_steps": 60
+      },
+      "output_checks": {
+        "must_include_any": [
+          "report",
+          "valuation",
+          "mock"
+        ]
+      }
+    }
+  }
+]

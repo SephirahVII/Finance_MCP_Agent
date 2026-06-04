@@ -1,0 +1,33 @@
+[
+  {
+    "id": "macro_policy_expand_demand_report",
+    "category": "macro_policy",
+    "query": "Analyze fiscal policy impact on expanding domestic demand and generate a macro research report",
+    "expected": {
+      "route": "investment_task",
+      "action": "execute",
+      "required_agents": [
+        "macro_policy_analyst",
+        "reviewer",
+        "report_writer"
+      ],
+      "forbidden_tools": true,
+      "rag": {
+        "source_type": "macro_policy",
+        "min_hits": 1
+      },
+      "report_type": "macro_research_report",
+      "efficiency": {
+        "max_tool_calls": 0,
+        "max_trace_steps": 45
+      },
+      "output_checks": {
+        "must_include_any": [
+          "policy",
+          "macro",
+          "mock"
+        ]
+      }
+    }
+  }
+]

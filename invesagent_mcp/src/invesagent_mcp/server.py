@@ -55,6 +55,11 @@ def create_mcp_server(
     from invesagent_mcp.tools.fundamentals import register_fundamentals_tools
     from invesagent_mcp.tools.comparison import register_comparison_tools
     from invesagent_mcp.tools.industry import register_industry_tools
+    from invesagent_mcp.tools.alternative_data import register_alternative_data_tools
+    from invesagent_mcp.tools.index_data import register_index_data_tools
+    from invesagent_mcp.tools.macro_data import register_macro_data_tools
+    from invesagent_mcp.tools.news_research import register_news_research_tools
+    from invesagent_mcp.tools.sector_data import register_sector_data_tools
 
     mcp = FastMCP(
         SERVER_NAME,
@@ -70,6 +75,11 @@ def create_mcp_server(
     register_fundamentals_tools(mcp)
     register_comparison_tools(mcp)
     register_industry_tools(mcp)
+    register_alternative_data_tools(mcp)
+    register_macro_data_tools(mcp)
+    register_sector_data_tools(mcp)
+    register_index_data_tools(mcp)
+    register_news_research_tools(mcp)
 
     return mcp
 

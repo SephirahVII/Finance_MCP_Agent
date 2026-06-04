@@ -1,0 +1,28 @@
+[
+  {
+    "id": "fundamentals_maotai",
+    "category": "fundamentals",
+    "query": "Analyze 600519.SH fundamentals, revenue, profit, ROE and cash flow",
+    "expected": {
+      "route": "investment_task",
+      "action": "execute",
+      "required_agents": [
+        "data_collector",
+        "fundamental_analyst"
+      ],
+      "forbidden_agents": [
+        "macro_policy_analyst",
+        "report_writer"
+      ],
+      "tools": [
+        "resolve_instrument_tool",
+        "analyze_fundamentals_tool"
+      ],
+      "efficiency": {
+        "max_tool_calls": 2,
+        "max_duplicate_tool_calls": 0,
+        "max_trace_steps": 25
+      }
+    }
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "price_volume_maotai_q1",
+    "category": "price_volume",
+    "query": "Analyze 600519.SH from 2024-01-01 to 2024-03-31 price trend and volatility",
+    "expected": {
+      "route": "investment_task",
+      "action": "execute",
+      "required_agents": [
+        "data_collector",
+        "price_volume_analyst"
+      ],
+      "forbidden_agents": [
+        "macro_policy_analyst",
+        "report_writer"
+      ],
+      "tools": [
+        "resolve_instrument_tool",
+        "analyze_ohlcv_price_trend_tool",
+        "generate_ohlcv_price_chart_tool"
+      ],
+      "params": {
+        "symbol": "600519.SH",
+        "start_date": "20240101",
+        "end_date": "20240331"
+      },
+      "efficiency": {
+        "max_tool_calls": 3,
+        "max_duplicate_tool_calls": 0,
+        "max_trace_steps": 25,
+        "max_avg_tool_latency_ms": 1000
+      },
+      "output_checks": {
+        "must_include_any": [
+          "price",
+          "trend",
+          "mock"
+        ]
+      }
+    }
+  }
+]
